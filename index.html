@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌻 植物大战算术僵尸 🧟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #90EE90 60%, #228B22 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 开始界面 */
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            animation: fadeIn 1s;
+        }
+
+        .game-title {
+            font-size: 3em;
+            color: #2E7D32;
+            text-shadow: 3px 3px 0px #FFD700, 5px 5px 0px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: #4CAF50;
+            margin-bottom: 30px;
+        }
+
+        .start-btn {
+            padding: 20px 60px;
+            font-size: 1.8em;
+            background: linear-gradient(145deg, #FF6B35, #FF4500);
+            color: white;
+            border: 4px solid #FFD700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            animation: pulse 1.5s infinite;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        .difficulty-select {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .diff-btn {
+            padding: 12px 30px;
+            font-size: 1.2em;
+            border: 3px solid #4CAF50;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #2E7D32;
+        }
+
+        .diff-btn.active {
+            background: #4CAF50;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .diff-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 游戏主界面 */
+        .game-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* 顶部信息栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.7);
+            border-radius: 15px;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .info-item {
+            color: white;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sun-icon {
+            font-size: 1.5em;
+            animation: spin 3s linear infinite;
+        }
+
+        .timer {
+            color: #FF6B35;
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        .timer.warning {
+            color: #FF0000;
+            animation: blink 0.5s infinite;
+        }
+
+        /* 草坪区域 */
+        .lawn {
+            position: relative;
+            background: repeating-linear-gradient(
+                90deg,
+                #4CAF50 0px,
+                #4CAF50 80px,
+                #388E3C 80px,
+                #388E3C 160px
+            );
+            border-radius: 20px;
+            min-height: 300px;
+            padding: 20px;
+            border: 4px solid #2E7D32;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .lawn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px,
+                transparent 60px,
+                rgba(0,0,0,0.05) 60px,
+                rgba(0,0,0,0.05) 62px
+            );
+        }
+
+        /* 植物收集区 */
+        .plant-collection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .planted {
+            font-size: 2.5em;
+            animation: plantAppear 0.5s ease-out;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+        }
+
+        /* 僵尸问题区 */
+        .zombie-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .zombie-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: zombieWalk 2s infinite;
+        }
+
+        .zombie-emoji {
+            font-size: 4em;
+            filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.3));
+        }
+
+        .problem-bubble {
+            background: white;
+            border: 3px solid #FF5722;
+            border-radius: 20px;
+            padding: 15px 30px;
+            margin-top: 10px;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .problem-bubble::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid white;
+        }
+
+        /* 答题区域 */
+        .answer-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .answer-input {
+            width: 150px;
+            height: 70px;
+            font-size: 2.5em;
+            text-align: center;
+            border: 4px solid #4CAF50;
+            border-radius: 15px;
+            outline: none;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.95);
+        }
+
+        .answer-input:focus {
+            border-color: #FF6B35;
+            box-shadow: 0 0 20px rgba(255,107,53,0.4);
+            transform: scale(1.05);
+        }
+
+        .answer-input.correct {
+            border-color: #4CAF50;
+            background: #C8E6C9;
+            animation: correctShake 0.5s;
+        }
+
+        .answer-input.wrong {
+            border-color: #F44336;
+            background: #FFCDD2;
+            animation: wrongShake 0.5s;
+        }
+
+        .submit-btn {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            color: white;
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 反馈信息 */
+        .feedback {
+            text-align: center;
+            font-size: 1.8em;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .feedback.correct-fb {
+            color: #4CAF50;
+            animation: feedbackPop 0.5s;
+        }
+
+        .feedback.wrong-fb {
+            color: #F44336;
+            animation: feedbackPop 0.5s;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A, #FFEB3B);
+            border-radius: 15px;
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* 波次提示 */
+        .wave-notice {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #FF0000;
+            text-shadow: 3px 3px 0px #000;
+            z-index: 100;
+            animation: waveIn 2s forwards;
+            pointer-events: none;
+        }
+
+        /* 结果界面 */
+        .result-screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .result-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 5px solid #FFD700;
+        }
+
+        .result-title {
+            font-size: 2.5em;
+            color: #2E7D32;
+            margin-bottom: 20px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #2E7D32;
+            font-weight: bold;
+        }
+
+        .stars-display {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+
+        .reward-section {
+            background: linear-gradient(135deg, #FFF9C4, #FFF176);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid #FFD700;
+        }
+
+        .reward-title {
+            font-size: 1.5em;
+            color: #F57F17;
+            margin-bottom: 10px;
+        }
+
+        .reward-plants {
+            font-size: 3em;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .reward-plant {
+            animation: rewardBounce 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .play-again-btn {
+            padding: 15px 50px;
+            font-size: 1.5em;
+            background: linear-gradient(145deg, #FF6B35, #FF4500);
+            color: white;
+            border: 3px solid #FFD700;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .play-again-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 连击显示 */
+        .combo-display {
+            position: fixed;
+            top: 20%;
+            right: 20px;
+            font-size: 2em;
+            color: #FF6B35;
+            text-shadow: 2px 2px 0px #000;
+            z-index: 50;
+            animation: comboIn 0.3s;
+            display: none;
+        }
+
+        /* 阳光飘落动画 */
+        .sun-drop {
+            position: fixed;
+            font-size: 2em;
+            pointer-events: none;
+            z-index: 200;
+            animation: sunDrop 1.5s forwards;
+        }
+
+        /* 豌豆射手射击动画 */
+        .pea-shot {
+            position: fixed;
+            font-size: 1.5em;
+            pointer-events: none;
+            z-index: 200;
+            animation: peaShoot 0.5s forwards;
+        }
+
+        /* 数字键盘（移动端友好） */
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 300px;
+            margin: 15px auto;
+        }
+
+        .num-btn {
+            padding: 15px;
+            font-size: 1.8em;
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #4CAF50;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .num-btn:active {
+            transform: scale(0.9);
+            background: #C8E6C9;
+        }
+
+        .num-btn.clear-btn {
+            background: #FFCDD2;
+            border-color: #F44336;
+        }
+
+        .num-btn.enter-btn {
+            background: #C8E6C9;
+            border-color: #4CAF50;
+            grid-column: span 3;
+        }
+
+        .num-btn.negative-btn {
+            background: #FFF9C4;
+            border-color: #F57F17;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+            50% { box-shadow: 0 8px 40px rgba(255,107,53,0.6); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes zombieWalk {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            75% { transform: translateX(5px) rotate(2deg); }
+        }
+
+        @keyframes plantAppear {
+            from { transform: scale(0) rotate(-180deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes correctShake {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+
+        @keyframes feedbackPop {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes waveIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        }
+
+        @keyframes comboIn {
+            from { transform: scale(2); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes sunDrop {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes peaShoot {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(200px); opacity: 0; }
+        }
+
+        @keyframes rewardBounce {
+            0% { transform: scale(0) translateY(20px); }
+            60% { transform: scale(1.3) translateY(-10px); }
+            100% { transform: scale(1) translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 装饰性云朵 */
+        .cloud {
+            position: fixed;
+            font-size: 3em;
+            opacity: 0.6;
+            animation: cloudFloat 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes cloudFloat {
+            from { transform: translateX(-100px); }
+            to { transform: translateX(calc(100vw + 100px)); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .game-title { font-size: 2em; }
+            .problem-bubble { font-size: 1.8em; padding: 10px 20px; }
+            .zombie-emoji { font-size: 3em; }
+            .answer-input { width: 120px; height: 60px; font-size: 2em; }
+            .top-bar { font-size: 0.9em; }
+            .result-stats { grid-template-columns: 1fr; }
+        }
+
+        /* 隐藏的类 */
+        .hidden { display: none !important; }
+
+        /* 音效按钮 */
+        .sound-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 999;
+        }
+
+        /* 提示按钮 */
+        .hint-btn {
+            padding: 8px 20px;
+            font-size: 1em;
+            background: #FFF9C4;
+            border: 2px solid #F57F17;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .hint-text {
+            color: #F57F17;
+            font-size: 1.1em;
+            margin-top: 8px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 音效开关 -->
+    <button class="sound-toggle" onclick="toggleSound()" id="soundBtn">🔊</button>
+
+    <!-- 云朵装饰 -->
+    <div class="cloud" style="top: 5%; animation-delay: 0s;">☁️</div>
+    <div class="cloud" style="top: 15%; animation-delay: 7s;">☁️</div>
+    <div class="cloud" style="top: 8%; animation-delay: 14s;">☁️</div>
+
+    <!-- ========== 开始界面 ========== -->
+    <div class="start-screen" id="startScreen">
+        <div class="game-title">🌻 植物大战算术僵尸 🧟</div>
+        <div class="subtitle">
+            <p>🧮 答对算术题，种植植物保卫家园！</p>
+            <p style="font-size:0.8em; color:#666; margin-top:10px;">100以内加减法 · 限时挑战 · 越快越准分数越高</p>
+        </div>
+
+        <div style="font-size: 1.2em; color: #2E7D32; margin: 15px 0;">
+            选择难度：
+        </div>
+        <div class="difficulty-select">
+            <button class="diff-btn active" onclick="setDifficulty('easy')" id="diff-easy">🌱 小僵尸<br><small>20以内</small></button>
+            <button class="diff-btn" onclick="setDifficulty('medium')" id="diff-medium">🧟 普通僵尸<br><small>50以内</small></button>
+            <button class="diff-btn" onclick="setDifficulty('hard')" id="diff-hard">👹 大僵尸<br><small>100以内</small></button>
+        </div>
+
+        <div style="font-size: 1.1em; color: #555; margin: 10px 0;">
+            选择题目数量：
+        </div>
+        <div class="difficulty-select">
+            <button class="diff-btn" onclick="setQuestionCount(10)" id="q10">10题</button>
+            <button class="diff-btn active" onclick="setQuestionCount(20)" id="q20">20题</button>
+            <button class="diff-btn" onclick="setQuestionCount(30)" id="q30">30题</button>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">🎮 开始保卫家园！</button>
+
+        <div style="margin-top: 25px; font-size: 0.95em; color: #666; max-width: 500px;">
+            <p>🌟 <b>规则：</b></p>
+            <p>✅ 答对一题 → 种一棵植物 + 获得阳光</p>
+            <p>⚡ 答得越快 → 阳光奖励越多</p>
+            <p>🔥 连续答对 → 连击加分！</p>
+            <p>❌ 答错了 → 僵尸会靠近一步哦</p>
+        </div>
+    </div>
+
+    <!-- ========== 游戏界面 ========== -->
+    <div class="game-screen" id="gameScreen">
+        <div class="top-bar">
+            <div class="info-item">
+                <span class="sun-icon">☀️</span>
+                <span>阳光: <b id="sunCount">0</b></span>
+            </div>
+            <div class="info-item">
+                <span>⏱️</span>
+                <span class="timer" id="timerDisplay">00:00</span>
+            </div>
+            <div class="info-item">
+                <span>📝</span>
+                <span>第 <b id="questionNum">1</b>/<b id="totalQuestions">20</b> 题</span>
+            </div>
+            <div class="info-item">
+                <span>🔥</span>
+                <span>连击: <b id="comboCount">0</b></span>
+            </div>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+        </div>
+
+        <!-- 草坪 -->
+        <div class="lawn">
+            <div style="color: white; font-size: 1em; margin-bottom: 10px; position: relative; z-index: 2;">
+                🏠 我的花园（答对种植物）：
+            </div>
+            <div class="plant-collection" id="plantCollection">
+                <!-- 植物会出现在这里 -->
+            </div>
+
+            <!-- 僵尸问题 -->
+            <div class="zombie-area">
+                <div class="zombie-container" id="zombieContainer">
+                    <div class="zombie-emoji" id="zombieEmoji">🧟</div>
+                    <div class="problem-bubble" id="problemBubble">
+                        <span id="problemText">5 + 3 = ?</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 答题区 -->
+        <div class="answer-area">
+            <input type="number" class="answer-input" id="answerInput" placeholder="?" 
+                   onkeydown="handleKeyDown(event)" autofocus>
+            <button class="submit-btn" onclick="checkAnswer()">🌱 发射豌豆！</button>
+        </div>
+
+        <!-- 数字键盘 -->
+        <div class="number-pad" id="numberPad">
+            <button class="num-btn" onclick="numInput(1)">1</button>
+            <button class="num-btn" onclick="numInput(2)">2</button>
+            <button class="num-btn" onclick="numInput(3)">3</button>
+            <button class="num-btn" onclick="numInput(4)">4</button>
+            <button class="num-btn" onclick="numInput(5)">5</button>
+            <button class="num-btn" onclick="numInput(6)">6</button>
+            <button class="num-btn" onclick="numInput(7)">7</button>
+            <button class="num-btn" onclick="numInput(8)">8</button>
+            <button class="num-btn" onclick="numInput(9)">9</button>
+            <button class="num-btn clear-btn" onclick="clearInput()">⌫</button>
+            <button class="num-btn" onclick="numInput(0)">0</button>
+            <button class="num-btn enter-btn" onclick="checkAnswer()">✅ 确定</button>
+        </div>
+
+        <!-- 提示 -->
+        <div style="text-align:center;">
+            <button class="hint-btn" onclick="showHint()">💡 要提示吗？(-10阳光)</button>
+            <div class="hint-text" id="hintText"></div>
+        </div>
+
+        <!-- 反馈 -->
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- ========== 结果界面 ========== -->
+    <div class="result-screen" id="resultScreen">
+        <div class="result-card">
+            <div class="result-title" id="resultTitle">🎉 保卫战胜利！</div>
+            <div class="stars-display" id="starsDisplay">⭐⭐⭐</div>
+
+            <div class="result-stats">
+                <div class="stat-box">
+                    <div class="stat-label">☀️ 总阳光</div>
+                    <div class="stat-value" id="finalSun">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">✅ 正确率</div>
+                    <div class="stat-value" id="finalAccuracy">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">⏱️ 用时</div>
+                    <div class="stat-value" id="finalTime">0:00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">🔥 最高连击</div>
+                    <div class="stat-value" id="finalCombo">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">⚡ 平均每题</div>
+                    <div class="stat-value" id="finalAvgTime">0s</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">🏆 总分</div>
+                    <div class="stat-value" id="finalScore">0</div>
+                </div>
+            </div>
+
+            <div class="reward-section">
+                <div class="reward-title">🎁 获得的植物奖励：</div>
+                <div class="reward-plants" id="rewardPlants"></div>
+            </div>
+
+            <div id="resultMessage" style="font-size: 1.2em; color: #555; margin: 15px 0;"></div>
+
+            <button class="play-again-btn" onclick="resetGame()">🔄 再来一局！</button>
+        </div>
+    </div>
+
+    <!-- 连击显示 -->
+    <div class="combo-display" id="comboDisplay"></div>
+
+    <script>
+        // ========== 游戏状态 ==========
+        let gameState = {
+            difficulty: 'easy',
+            questionCount: 20,
+            currentQuestion: 0,
+            score: 0,
+            sunCount: 0,
+            combo: 0,
+            maxCombo: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            startTime: null,
+            questionStartTime: null,
+            timerInterval: null,
+            totalAnswerTime: 0,
+            plants: [],
+            soundEnabled: true,
+            problems: [],
+            hintUsed: false
+        };
+
+        // 植物列表
+        const plantList = ['🌻', '🌷', '🌹', '🌺', '🌸', '💐', '🪴', '🌵', '🍀', '🌿', 
+                          '☘️', '🍃', '🎋', '🎍', '🌾', '🪷', '🪻', '🌼'];
+        
+        // 特殊奖励植物
+        const specialPlants = {
+            sunflower: '🌻',
+            peashooter: '🫛',
+            wallnut: '🥜',
+            cherrybomb: '🍒',
+            snowpea: '❄️',
+            repeater: '🟢',
+            chomper: '🪴',
+            torchwood: '🔥',
+            tallnut: '🧱',
+            cobcannon: '🌽'
+        };
+
+        // 僵尸类型
+        const zombieTypes = ['🧟', '🧟‍♂️', '👻', '👹', '💀', '👽'];
+
+        // 鼓励语
+        const correctMessages = [
+            '太棒了！🎉', '真聪明！🧠', '完美！💯', '厉害！🌟', 
+            '好样的！👍', '太强了！💪', '漂亮！✨', '没错！🎯',
+            '天才！🏆', '666！🔥', '真厉害呀！👏', '算得真快！⚡'
+        ];
+
+        const wrongMessages = [
+            '再想想哦~ 🤔', '加油！💪', '别着急~ 🌈', 
+            '下一题一定行！🌟', '没关系，继续！😊'
+        ];
+
+        const comboMessages = [
+            '', '', '连击x2！🔥', '三连击！🔥🔥', '四连击！太强了！🔥🔥🔥',
+            '五连击！无敌！💥', '超级连击！🌟💥🌟', '疯狂连击！🎆',
+            '传说连击！👑', '神级连击！🏆👑🏆'
+        ];
+
+        // ========== 音效系统（用Web Audio API生成简单音效） ==========
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                switch(type) {
+                    case 'correct':
+                        osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+                        osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+                        osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+                        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                        osc.start(audioCtx.currentTime);
+                        osc.stop(audioCtx.currentTime + 0.4);
+                        break;
+                    case 'wrong':
+                        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                        osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.2);
+                        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                        osc.start(audioCtx.currentTime);
+                        osc.stop(audioCtx.currentTime + 0.4);
+                        break;
+                    case 'combo':
+                        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                        osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
+                        osc.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.15);
+                        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                        osc.start(audioCtx.currentTime);
+                        osc.stop(audioCtx.currentTime + 0.3);
+                        break;
+                    case 'click':
+                        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                        osc.start(audioCtx.currentTime);
+                        osc.stop(audioCtx.currentTime + 0.1);
+                        break;
+                }
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            document.getElementById('soundBtn').textContent = gameState.soundEnabled ? '🔊' : '🔇';
+        }
+
+        // ========== 难度和题目数量设置 ==========
+        function setDifficulty(diff) {
+            gameState.difficulty = diff;
+            document.querySelectorAll('.diff-btn[id^="diff-"]').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('diff-' + diff).classList.add('active');
+        }
+
+        function setQuestionCount(count) {
+            gameState.questionCount = count;
+            document.querySelectorAll('.diff-btn[id^="q"]').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('q' + count).classList.add('active');
+        }
+
+        // ========== 生成题目 ==========
+        function generateProblem() {
+            let a, b, operator, answer, maxNum;
+
+            switch(gameState.difficulty) {
+                case 'easy': maxNum = 20; break;
+                case 'medium': maxNum = 50; break;
+                case 'hard': maxNum = 100; break;
+            }
+
+            operator = Math.random() > 0.5 ? '+' : '-';
+
+            if (operator === '+') {
+                a = Math.floor(Math.random() * maxNum) + 1;
+                b = Math.floor(Math.random() * (maxNum - a)) + 1;
+                answer = a + b;
+            } else {
+                answer = Math.floor(Math.random() * (maxNum - 1)) + 1;
+                b = Math.floor(Math.random() * answer) + 1;
+                a = answer + b;
+                answer = a - b;
+            }
+
+            return { a, b, operator, answer };
+        }
+
+        // ========== 开始游戏 ==========
+        function startGame() {
+            playSound('click');
+            
+            // 重置状态
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            gameState.sunCount = 50; // 初始阳光
+            gameState.combo = 0;
+            gameState.maxCombo = 0;
+            gameState.correctCount = 0;
+            gameState.wrongCount = 0;
+            gameState.totalAnswerTime = 0;
+            gameState.plants = [];
+            gameState.problems = [];
+            gameState.startTime = Date.now();
+
+            // 生成所有题目
+            for (let i = 0; i < gameState.questionCount; i++) {
+                gameState.problems.push(generateProblem());
+            }
+
+            // 切换界面
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('resultScreen').style.display = 'none';
+
+            document.getElementById('totalQuestions').textContent = gameState.questionCount;
+            document.getElementById('plantCollection').innerHTML = '';
+            updateSunDisplay();
+
+            // 开始计时器
+            startTimer();
+
+            // 显示第一题
+            showQuestion();
+
+            // 显示波次提示
+            showWaveNotice('🧟 僵尸来了！准备战斗！');
+        }
+
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const sec = (elapsed % 60).toString().padStart(2, '0');
+                const display = document.getElementById('timerDisplay');
+                display.textContent = `${min}:${sec}`;
+                
+                // 超过5分钟警告
+                if (elapsed > 300) {
+                    display.classList.add('warning');
+                }
+            }, 1000);
+        }
+
+        // ========== 显示题目 ==========
+        function showQuestion() {
+            if (gameState.currentQuestion >= gameState.questionCount) {
+                endGame();
+                return;
+            }
+
+            const problem = gameState.problems[gameState.currentQuestion];
+            document.getElementById('problemText').textContent = `${problem.a} ${problem.operator} ${problem.b} = ?`;
+            document.getElementById('questionNum').textContent = gameState.currentQuestion + 1;
+
+            // 更新进度
+            const progress = (gameState.currentQuestion / gameState.questionCount) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = Math.round(progress) + '%';
+
+            // 更新僵尸外观
+            const zombieIdx = Math.min(Math.floor(gameState.currentQuestion / 5), zombieTypes.length - 1);
+            document.getElementById('zombieEmoji').textContent = zombieTypes[zombieIdx];
+
+            // 重置输入
+            const input = document.getElementById('answerInput');
+            input.value = '';
+            input.className = 'answer-input';
+            input.focus();
+
+            // 清除提示
+            document.getElementById('hintText').textContent = '';
+            gameState.hintUsed = false;
+
+            // 记录题目开始时间
+            gameState.questionStartTime = Date.now();
+
+            // 清除反馈
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+
+            // 波次提示
+            if (gameState.currentQuestion === Math.floor(gameState.questionCount / 2)) {
+                showWaveNotice('⚠️ 一大波僵尸正在接近！');
+            }
+            if (gameState.currentQuestion === gameState.questionCount - 3) {
+                showWaveNotice('🚨 最终波次！最后3题！');
+            }
+        }
+
+        // ========== 检查答案 ==========
+        function checkAnswer() {
+            const input = document.getElementById('answerInput');
+            const userAnswer = parseInt(input.value);
+
+            if (isNaN(userAnswer)) {
+                input.classList.add('wrong');
+                setTimeout(() => input.classList.remove('wrong'), 500);
+                return;
+            }
+
+            const problem = gameState.problems[gameState.currentQuestion];
+            const answerTime = (Date.now() - gameState.questionStartTime) / 1000;
+            gameState.totalAnswerTime += answerTime;
+
+            if (userAnswer === problem.answer) {
+                handleCorrect(answerTime);
+            } else {
+                handleWrong(problem.answer);
+            }
+
+            gameState.currentQuestion++;
+            
+            // 延迟显示下一题
+            setTimeout(showQuestion, 800);
+        }
+
+        // ========== 答对处理 ==========
+        function handleCorrect(answerTime) {
+            playSound('correct');
+            gameState.correctCount++;
+            gameState.combo++;
+            if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+
+            // 计算得分
+            let baseScore = 100;
+            
+            // 速度加分（越快越多，3秒内满分）
+            let speedBonus = Math.max(0, Math.floor((10 - answerTime) * 15));
+            
+            // 连击加分
+            let comboBonus = gameState.combo * 20;
+
+            // 提示扣分
+            if (gameState.hintUsed) {
+                comboBonus = Math.floor(comboBonus / 2);
+            }
+
+            let totalSun = baseScore + speedBonus + comboBonus;
+            gameState.sunCount += totalSun;
+            gameState.score += totalSun;
+
+            // 更新显示
+            updateSunDisplay();
+            document.getElementById('comboCount').textContent = gameState.combo;
+
+            // 输入框效果
+            document.getElementById('answerInput').classList.add('correct');
+
+            // 种植物
+            addPlant();
+
+            // 反馈信息
+            let msg = correctMessages[Math.floor(Math.random() * correctMessages.length)];
+            if (speedBonus > 100) msg += ' ⚡神速！';
+            document.getElementById('feedback').textContent = msg + ` (+${totalSun}☀️)`;
+            document.getElementById('feedback').className = 'feedback correct-fb';
+
+            // 连击显示
+            if (gameState.combo >= 2) {
+                showCombo(gameState.combo);
+                playSound('combo');
+            }
+
+            // 阳光飘落动画
+            createSunDrop();
+        }
+
+        // ========== 答错处理 ==========
+        function handleWrong(correctAnswer) {
+            playSound('wrong');
+            gameState.wrongCount++;
+            gameState.combo = 0;
+
+            // 扣少量阳光
+            gameState.sunCount = Math.max(0, gameState.sunCount - 20);
+            updateSunDisplay();
+
+            document.getElementById('comboCount').textContent = 0;
+            document.getElementById('answerInput').classList.add('wrong');
+
+            let msg = wrongMessages[Math.floor(Math.random() * wrongMessages.length)];
+            document.getElementById('feedback').textContent = `${msg} 正确答案是 ${correctAnswer}`;
+            document.getElementById('feedback').className = 'feedback wrong-fb';
+
+            // 隐藏连击显示
+            document.getElementById('comboDisplay').style.display = 'none';
+        }
+
+        // ========== UI 辅助函数 ==========
+        function updateSunDisplay() {
+            document.getElementById('sunCount').textContent = gameState.sunCount;
+        }
+
+        function addPlant() {
+            const collection = document.getElementById('plantCollection');
+            const plant = plantList[Math.floor(Math.random() * plantList.length)];
+            const span = document.createElement('span');
+            span.className = 'planted';
+            span.textContent = plant;
+            collection.appendChild(span);
+            gameState.plants.push(plant);
+        }
+
+        function showCombo(combo) {
+            const display = document.getElementById('comboDisplay');
+            const msgIdx = Math.min(combo, comboMessages.length - 1);
+            display.textContent = comboMessages[msgIdx] || `🔥x${combo}！`;
+            display.style.display = 'block';
+            display.style.animation = 'none';
+            setTimeout(() => display.style.animation = 'comboIn 0.3s', 10);
+        }
+
+        function showWaveNotice(text) {
+            const notice = document.createElement('div');
+            notice.className = 'wave-notice';
+            notice.textContent = text;
+            document.body.appendChild(notice);
+            setTimeout(() => notice.remove(), 2500);
+        }
+
+        function createSunDrop() {
+            const sun = document.createElement('div');
+            sun.className = 'sun-drop';
+            sun.textContent = '☀️';
+            sun.style.left = (Math.random() * 60 + 20) + '%';
+            sun.style.top = '30%';
+            document.body.appendChild(sun);
+            setTimeout(() => sun.remove(), 1500);
+        }
+
+        // ========== 提示功能 ==========
+        function showHint() {
+            if (gameState.sunCount < 10) {
+                document.getElementById('hintText').textContent = '阳光不够啦！需要10阳光 💰';
+                return;
+            }
+
+            gameState.sunCount -= 10;
+            gameState.hintUsed = true;
+            updateSunDisplay();
+
+            const problem = gameState.problems[gameState.currentQuestion];
+            let hint = '';
+
+            if (problem.operator === '+') {
+                if (problem.a + problem.b <= 20) {
+                    hint = `💡 提示：伸出手指头数一数，${problem.a} 再加 ${problem.b} 个`;
+                } else {
+                    const tens_a = Math.floor(problem.a / 10) * 10;
+                    const ones_a = problem.a % 10;
+                    hint = `💡 提示：先算 ${tens_a} + ${Math.floor(problem.b/10)*10} = ${tens_a + Math.floor(problem.b/10)*10}，再加上个位数`;
+                }
+            } else {
+                if (problem.a <= 20) {
+                    hint = `💡 提示：${problem.a} 个苹果，吃掉 ${problem.b} 个，还剩几个？`;
+                } else {
+                    hint = `💡 提示：先算个位 ${problem.a%10} - ${problem.b%10}，再算十位`;
+                }
+            }
+
+            document.getElementById('hintText').textContent = hint;
+        }
+
+        // ========== 数字键盘输入 ==========
+        function numInput(num) {
+            playSound('click');
+            const input = document.getElementById('answerInput');
+            if (input.value.length < 3) {
+                input.value += num;
+            }
+        }
+
+        function clearInput() {
+            playSound('click');
+            const input = document.getElementById('answerInput');
+            input.value = input.value.slice(0, -1);
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        }
+
+        // ========== 结束游戏 ==========
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+
+            const totalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const accuracy = gameState.questionCount > 0 ? 
+                Math.round((gameState.correctCount / gameState.questionCount) * 100) : 0;
+            const avgTime = gameState.correctCount > 0 ? 
+                (gameState.totalAnswerTime / gameState.correctCount).toFixed(1) : 0;
+
+            // 计算星级评价
+            let stars = 0;
+            let finalScore = gameState.score;
+
+            // 正确率评分
+            if (accuracy >= 95) stars += 2;
+            else if (accuracy >= 80) stars += 1;
+
+            // 速度评分
+            if (avgTime <= 5) stars += 2;
+            else if (avgTime <= 10) stars += 1;
+
+            // 连击评分
+            if (gameState.maxCombo >= 8) stars += 1;
+            else if (gameState.maxCombo >= 5) stars += 0.5;
+
+            stars = Math.min(Math.round(stars), 5);
+
+            // 切换界面
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'block';
+
+            // 填充结果
+            const min = Math.floor(totalTime / 60);
+            const sec = totalTime % 60;
+            document.getElementById('finalSun').textContent = gameState.sunCount;
+            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            document.getElementById('finalTime').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+            document.getElementById('finalCombo').textContent = gameState.maxCombo;
+            document.getElementById('finalAvgTime').textContent = avgTime + 's';
+            document.getElementById('finalScore').textContent = finalScore;
+
+            // 星星
+            document.getElementById('starsDisplay').textContent = '⭐'.repeat(stars) + '☆'.repeat(5 - stars);
+
+            // 标题和消息
+            if (accuracy >= 90 && stars >= 4) {
+                document.getElementById('resultTitle').textContent = '🎉 完美胜利！僵尸被全部消灭！';
+                document.getElementById('resultMessage').textContent = '你是最棒的算术小英雄！戴夫都为你骄傲！🧢';
+            } else if (accuracy >= 70) {
+                document.getElementById('resultTitle').textContent = '🌟 保卫战成功！';
+                document.getElementById('resultMessage').textContent = '做得不错！再练练可以更好哦！加油！💪';
+            } else {
+                document.getElementById('resultTitle').textContent = '🌈 继续努力！';
+                document.getElementById('resultMessage').textContent = '没关系！多练习就会越来越厉害的！🌱';
+            }
+
+            // 奖励植物
+            const rewardContainer = document.getElementById('rewardPlants');
+            rewardContainer.innerHTML = '';
+            
+            let rewardCount = 0;
+            if (stars >= 1) { rewardCount = 2; }
+            if (stars >= 2) { rewardCount = 3; }
+            if (stars >= 3) { rewardCount = 5; }
+            if (stars >= 4) { rewardCount = 7; }
+            if (stars >= 5) { rewardCount = 10; }
+
+            const specialKeys = Object.values(specialPlants);
+            for (let i = 0; i < rewardCount; i++) {
+                const span = document.createElement('span');
+                span.className = 'reward-plant';
+                span.textContent = specialKeys[i % specialKeys.length];
+                span.style.animationDelay = (i * 0.1) + 's';
+                rewardContainer.appendChild(span);
+            }
+
+            // 进度条100%
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('progressFill').textContent = '100%';
+        }
+
+        // ========== 重置游戏 ==========
+        function resetGame() {
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            document.getElementById('comboDisplay').style.display = 'none';
+        }
+
+        // ========== 页面加载 ==========
+        window.onload = function() {
+            // 确保输入框获取焦点
+            document.getElementById('answerInput').focus();
+        };
+    </script>
+</body>
+</html>

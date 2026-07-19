@@ -1,1826 +1,1889 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌻 植物大战算术僵尸 · 限时版 🧟</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-sky: #7ec8e3;
-            --bg-grass: #4caf50;
-            --grass-dark: #388e3c;
-            --accent-orange: #ff6b35;
-            --accent-red: #e53935;
-            --accent-gold: #ffd600;
-            --accent-green: #43a047;
-            --text-dark: #1b2a1b;
-            --text-light: #f0f0e8;
-            --zombie-skin: #7a9e5a;
-            --zombie-skin-dark: #5a7a3a;
-            --zombie-eye: #ff4444;
-            --zombie-pupil: #220000;
-            --danger-bg: rgba(180,0,0,0.85);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(180deg, var(--bg-sky) 0%, #b2e0a0 50%, var(--bg-grass) 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-            color: var(--text-dark);
-        }
-
-        /* ========== CSS僵尸绘制 ========== */
-        .zombie-char {
-            position: relative;
-            width: 60px;
-            height: 80px;
-            display: inline-block;
-            transform-origin: bottom center;
-        }
-        
-        .zombie-char .zombie-body {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 36px;
-            height: 44px;
-            background: linear-gradient(180deg, #6d8b4a, #5a7a3a);
-            border-radius: 8px 8px 4px 4px;
-            border: 2px solid #4a6a2a;
-            box-shadow: inset 0 -4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .zombie-char .zombie-head {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 36px;
-            background: radial-gradient(ellipse at 50% 40%, #8aaa5a, var(--zombie-skin));
-            border-radius: 12px 12px 8px 8px;
-            border: 2px solid #5a7a3a;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .zombie-char .zombie-head::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 8px;
-            width: 6px;
-            height: 10px;
-            background: #6d8b4a;
-            border-radius: 3px;
-            transform: rotate(-15deg);
-        }
-        
-        .zombie-char .zombie-head::after {
-            content: '';
-            position: absolute;
-            top: -4px;
-            right: 10px;
-            width: 5px;
-            height: 8px;
-            background: #6d8b4a;
-            border-radius: 3px;
-            transform: rotate(20deg);
-        }
-        
-        .zombie-char .zombie-eye {
-            position: absolute;
-            top: 10px;
-            width: 12px;
-            height: 14px;
-            background: radial-gradient(circle at 40% 40%, #fff, #ffe0e0);
-            border-radius: 50%;
-            border: 2px solid #444;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        
-        .zombie-char .zombie-eye.left { left: 6px; }
-        .zombie-char .zombie-eye.right { right: 6px; }
-        
-        .zombie-char .zombie-pupil {
-            position: absolute;
-            bottom: 3px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 7px;
-            background: var(--zombie-pupil);
-            border-radius: 50%;
-            animation: pupilLook 3s ease-in-out infinite;
-        }
-        
-        .zombie-char .zombie-mouth {
-            position: absolute;
-            bottom: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 16px;
-            height: 8px;
-            background: #3a1a1a;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #5a3a3a;
-            overflow: hidden;
-        }
-        
-        .zombie-char .zombie-tooth {
-            position: absolute;
-            top: 0;
-            width: 4px;
-            height: 5px;
-            background: #f0f0e0;
-            border-radius: 0 0 2px 2px;
-        }
-        
-        .zombie-char .zombie-tooth:nth-child(1) { left: 3px; }
-        .zombie-char .zombie-tooth:nth-child(2) { left: 7px; }
-        .zombie-char .zombie-tooth:nth-child(3) { left: 11px; }
-        
-        .zombie-char .zombie-arm {
-            position: absolute;
-            bottom: 20px;
-            width: 10px;
-            height: 28px;
-            background: linear-gradient(180deg, var(--zombie-skin), #6d8b4a);
-            border-radius: 4px;
-            border: 1px solid #5a7a3a;
-        }
-        
-        .zombie-char .zombie-arm.left {
-            left: -6px;
-            transform: rotate(30deg);
-            transform-origin: top right;
-            animation: armSwingLeft 0.6s ease-in-out infinite;
-        }
-        
-        .zombie-char .zombie-arm.right {
-            right: -6px;
-            transform: rotate(-30deg);
-            transform-origin: top left;
-            animation: armSwingRight 0.6s ease-in-out infinite;
-        }
-        
-        .zombie-char .zombie-hand {
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 8px;
-            background: var(--zombie-skin);
-            border-radius: 4px;
-            border: 1px solid #5a7a3a;
-        }
-        
-        .zombie-char .zombie-leg {
-            position: absolute;
-            bottom: -14px;
-            width: 12px;
-            height: 16px;
-            background: linear-gradient(180deg, #4a6a8a, #3a5a7a);
-            border-radius: 4px 4px 4px 4px;
-            border: 1px solid #3a5a6a;
-        }
-        
-        .zombie-char .zombie-leg.left {
-            left: 8px;
-            animation: legStepLeft 0.6s ease-in-out infinite;
-        }
-        
-        .zombie-char .zombie-leg.right {
-            right: 8px;
-            animation: legStepRight 0.6s ease-in-out infinite;
-        }
-        
-        .zombie-char .zombie-shoe {
-            position: absolute;
-            bottom: -8px;
-            left: -2px;
-            width: 16px;
-            height: 8px;
-            background: #333;
-            border-radius: 6px 8px 4px 4px;
-        }
-        
-        /* 僵尸类型变体 */
-        .zombie-char.zombie-normal { filter: none; }
-        .zombie-char.zombie-fast { 
-            filter: hue-rotate(20deg) brightness(1.1);
-            animation: zombieFast 0.4s ease-in-out infinite;
-        }
-        .zombie-char.zombie-big { 
-            transform: scale(1.3);
-            filter: saturate(1.2);
-        }
-        .zombie-char.zombie-ghost { 
-            filter: brightness(1.3) saturate(0.5);
-            opacity: 0.85;
-        }
-        .zombie-char.zombie-elite { 
-            filter: hue-rotate(-20deg) contrast(1.2);
-        }
-        .zombie-char.zombie-alien { 
-            filter: hue-rotate(180deg) brightness(1.2);
-        }
-        
-        /* 僵尸受伤闪烁 */
-        .zombie-char.hit {
-            animation: zombieHit 0.3s ease-out;
-        }
-        
-        /* 僵尸被击败 */
-        .zombie-char.defeated {
-            animation: zombieDefeat 0.8s forwards;
-        }
-
-        @keyframes pupilLook {
-            0%, 100% { transform: translateX(-50%) translateX(0); }
-            25% { transform: translateX(-50%) translateX(-2px); }
-            75% { transform: translateX(-50%) translateX(2px); }
-        }
-        
-        @keyframes armSwingLeft {
-            0%, 100% { transform: rotate(30deg); }
-            50% { transform: rotate(45deg); }
-        }
-        
-        @keyframes armSwingRight {
-            0%, 100% { transform: rotate(-30deg); }
-            50% { transform: rotate(-45deg); }
-        }
-        
-        @keyframes legStepLeft {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(15deg); }
-        }
-        
-        @keyframes legStepRight {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(-15deg); }
-        }
-        
-        @keyframes zombieFast {
-            0%, 100% { transform: scale(1) skewX(0deg); }
-            50% { transform: scale(1.05) skewX(-5deg); }
-        }
-        
-        @keyframes zombieHit {
-            0% { filter: brightness(2); transform: scale(1); }
-            50% { filter: brightness(3); transform: scale(1.1); }
-            100% { filter: brightness(1); transform: scale(1); }
-        }
-        
-        @keyframes zombieDefeat {
-            0% { transform: scale(1) rotate(0); opacity: 1; }
-            50% { transform: scale(1.2) rotate(10deg); opacity: 0.8; }
-            100% { transform: scale(0) rotate(45deg); opacity: 0; }
-        }
-
-        /* ========== 开始界面 ========== */
-        .start-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-            padding: 20px;
-            animation: fadeIn 0.8s;
-        }
-
-        .game-title {
-            font-family: 'Bungee Shade', cursive;
-            font-size: clamp(1.8em, 5vw, 3.2em);
-            color: var(--accent-green);
-            text-shadow: 3px 3px 0 var(--accent-gold), 6px 6px 0 rgba(0,0,0,0.15);
-            margin-bottom: 10px;
-            animation: bounce 2.5s infinite;
-        }
-
-        .subtitle {
-            font-size: 1.2em;
-            color: #2e7d32;
-            margin-bottom: 25px;
-        }
-
-        .config-section {
-            background: rgba(255,255,255,0.88);
-            border-radius: 24px;
-            padding: 24px 30px;
-            margin: 10px 0;
-            max-width: 520px;
-            width: 100%;
-            border: 3px solid var(--accent-gold);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
-
-        .config-label {
-            font-size: 1.15em;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 8px;
-        }
-
-        .diff-btn {
-            padding: 10px 22px;
-            font-size: 1.05em;
-            font-family: inherit;
-            font-weight: 600;
-            border: 3px solid #a5d6a7;
-            border-radius: 22px;
-            cursor: pointer;
-            transition: all 0.25s;
-            background: #fff;
-            color: #2e7d32;
-            user-select: none;
-        }
-
-        .diff-btn.active {
-            background: var(--accent-green);
-            color: #fff;
-            border-color: var(--accent-green);
-            transform: scale(1.08);
-            box-shadow: 0 4px 16px rgba(76,175,80,0.3);
-        }
-
-        .diff-btn:hover { transform: scale(1.04); }
-
-        .start-btn {
-            padding: 18px 56px;
-            font-size: 1.7em;
-            font-family: inherit;
-            font-weight: 700;
-            background: linear-gradient(145deg, var(--accent-orange), #ff4500);
-            color: #fff;
-            border: 4px solid var(--accent-gold);
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 8px 28px rgba(255,69,0,0.35);
-            animation: pulse 1.8s infinite;
-            margin-top: 16px;
-        }
-
-        .start-btn:hover { transform: scale(1.08); box-shadow: 0 12px 36px rgba(255,69,0,0.45); }
-
-        .rules-box {
-            margin-top: 22px;
-            font-size: 0.95em;
-            color: #555;
-            max-width: 500px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 16px;
-            padding: 16px 20px;
-            text-align: left;
-            line-height: 1.8;
-        }
-
-        .rules-box b { color: var(--accent-green); }
-
-        /* ========== 游戏主界面 ========== */
-        .game-screen {
-            display: none;
-            min-height: 100vh;
-            padding: 10px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.72);
-            border-radius: 16px;
-            padding: 10px 18px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .info-item {
-            color: #fff;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .sun-icon { font-size: 1.4em; animation: spin 3s linear infinite; }
-
-        /* ---- 题目倒计时条 ---- */
-        .question-timer-bar {
-            width: 100%;
-            height: 18px;
-            background: rgba(0,0,0,0.25);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        .question-timer-fill {
-            height: 100%;
-            border-radius: 12px;
-            transition: width 0.25s linear, background 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75em;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-        }
-
-        .question-timer-fill.safe { background: linear-gradient(90deg, #43a047, #66bb6a); }
-        .question-timer-fill.warn { background: linear-gradient(90deg, #ff9800, #ffc107); }
-        .question-timer-fill.danger { background: linear-gradient(90deg, #e53935, #ff5252); animation: dangerPulse 0.5s infinite; }
-
-        /* ---- 僵尸行走区域 ---- */
-        .zombie-walk-zone {
-            position: relative;
-            height: 150px;
-            margin: 8px 0 4px 0;
-            overflow: hidden;
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 100%);
-        }
-
-        .walking-zombie {
-            position: absolute;
-            bottom: 20px;
-            transition: left 0.3s linear;
-            filter: drop-shadow(3px 4px 4px rgba(0,0,0,0.4));
-            z-index: 5;
-        }
-
-        .plant-defender {
-            position: absolute;
-            left: 10px;
-            bottom: 10px;
-            font-size: 3.5em;
-            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
-            z-index: 3;
-            transition: opacity 0.4s;
-        }
-
-        .plant-defender.eaten {
-            animation: eatenByZombie 0.8s forwards;
-        }
-
-        /* ---- 草坪区 ---- */
-        .lawn {
-            position: relative;
-            background: repeating-linear-gradient(90deg, #4CAF50 0px, #4CAF50 80px, #388E3C 80px, #388E3C 160px);
-            border-radius: 20px;
-            min-height: 220px;
-            padding: 16px;
-            border: 4px solid #2E7D32;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
-        .lawn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: repeating-linear-gradient(0deg, transparent 0px, transparent 55px, rgba(0,0,0,0.04) 55px, rgba(0,0,0,0.04) 57px);
-            pointer-events: none;
-        }
-
-        .plant-collection {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-height: 50px;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .planted {
-            font-size: 2.2em;
-            animation: plantAppear 0.45s ease-out;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
-        }
-
-        /* ---- 题目气泡 ---- */
-        .zombie-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 18px 0;
-            position: relative;
-            z-index: 2;
-        }
-
-        .problem-bubble {
-            background: #fff;
-            border: 3px solid #FF5722;
-            border-radius: 20px;
-            padding: 14px 28px;
-            font-size: 2.4em;
-            font-weight: 700;
-            color: #333;
-            box-shadow: 0 5px 18px rgba(0,0,0,0.18);
-            position: relative;
-            animation: bubblePop 0.3s ease-out;
-        }
-
-        .problem-bubble::before {
-            content: '🧟';
-            position: absolute;
-            top: -32px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.5em;
-        }
-
-        /* ---- 答题区 ---- */
-        .answer-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            margin: 16px 0;
-            flex-wrap: wrap;
-        }
-
-        .answer-input {
-            width: 150px;
-            height: 64px;
-            font-size: 2.2em;
-            font-family: inherit;
-            text-align: center;
-            border: 4px solid var(--accent-green);
-            border-radius: 14px;
-            outline: none;
-            transition: all 0.3s;
-            background: rgba(255,255,255,0.95);
-        }
-
-        .answer-input:focus { border-color: var(--accent-orange); box-shadow: 0 0 18px rgba(255,107,53,0.35); transform: scale(1.04); }
-        .answer-input.correct { border-color: #4CAF50; background: #C8E6C9; animation: correctShake 0.4s; }
-        .answer-input.wrong { border-color: #F44336; background: #FFCDD2; animation: wrongShake 0.45s; }
-        .answer-input.timeout { border-color: #b71c1c; background: #ffcdd2; animation: timeoutFlash 0.6s; }
-
-        .submit-btn {
-            padding: 14px 36px;
-            font-size: 1.4em;
-            font-family: inherit;
-            font-weight: 700;
-            background: linear-gradient(145deg, var(--accent-green), #2e7d32);
-            color: #fff;
-            border: 3px solid var(--accent-gold);
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-        }
-
-        .submit-btn:hover { transform: scale(1.08); }
-
-        .submit-btn:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* ---- 数字键盘 ---- */
-        .number-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 300px;
-            margin: 12px auto;
-        }
-
-        .num-btn {
-            padding: 14px;
-            font-size: 1.7em;
-            font-family: inherit;
-            font-weight: 700;
-            background: rgba(255,255,255,0.92);
-            border: 3px solid #a5d6a7;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.15s;
-            user-select: none;
-        }
-
-        .num-btn:active { transform: scale(0.92); background: #C8E6C9; }
-        .num-btn.clear-btn { background: #FFCDD2; border-color: #F44336; }
-        .num-btn.enter-btn { background: #C8E6C9; border-color: var(--accent-green); grid-column: span 3; }
-
-        /* ---- 提示 ---- */
-        .hint-section { text-align: center; margin: 6px 0; }
-
-        .hint-btn {
-            padding: 7px 18px;
-            font-size: 0.95em;
-            font-family: inherit;
-            font-weight: 600;
-            background: #FFF9C4;
-            border: 2px solid #F57F17;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .hint-text { color: #F57F17; font-size: 1.05em; margin-top: 6px; min-height: 26px; }
-
-        /* ---- 反馈 ---- */
-        .feedback {
-            text-align: center;
-            font-size: 1.6em;
-            font-weight: 700;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 6px 0;
-        }
-
-        .feedback.correct-fb { color: #4CAF50; animation: feedbackPop 0.4s; }
-        .feedback.wrong-fb { color: #F44336; animation: feedbackPop 0.4s; }
-        .feedback.timeout-fb { color: #b71c1c; animation: feedbackPop 0.5s; }
-
-        /* ---- 超时被吃覆盖层 ---- */
-        .eaten-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 900;
-            background: rgba(100,0,0,0.82);
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: overlayIn 0.4s;
-        }
-
-        .eaten-overlay.show { display: flex; }
-
-        .eaten-zombies-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .eaten-zombies-container .zombie-char {
-            animation: zombiesFeast 0.8s ease-in-out infinite alternate;
-        }
-
-        .eaten-zombies-container .zombie-char:nth-child(2) { animation-delay: 0.1s; }
-        .eaten-zombies-container .zombie-char:nth-child(3) { animation-delay: 0.2s; }
-
-        .eaten-text {
-            font-size: 2.2em;
-            color: #ffcdd2;
-            font-weight: 700;
-            text-shadow: 2px 2px 0 #000;
-            text-align: center;
-            line-height: 1.5;
-        }
-
-        .eaten-sub {
-            font-size: 1.1em;
-            color: #ffab91;
-            margin-top: 10px;
-        }
-
-        .eaten-btn {
-            margin-top: 20px;
-            padding: 14px 40px;
-            font-size: 1.3em;
-            font-family: inherit;
-            font-weight: 700;
-            background: var(--accent-orange);
-            color: #fff;
-            border: 3px solid var(--accent-gold);
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .eaten-btn:hover { transform: scale(1.08); }
-
-        /* ---- 进度条 ---- */
-        .progress-bar {
-            width: 100%;
-            height: 22px;
-            background: rgba(0,0,0,0.25);
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A, #FFEB3B);
-            border-radius: 12px;
-            transition: width 0.5s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-            font-weight: 700;
-            font-size: 0.85em;
-        }
-
-        /* ---- 波次提示 ---- */
-        .wave-notice {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.6em;
-            color: #FF0000;
-            text-shadow: 3px 3px 0 #000;
-            z-index: 100;
-            animation: waveIn 2.2s forwards;
-            pointer-events: none;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        /* ---- 连击显示 ---- */
-        .combo-display {
-            position: fixed;
-            top: 18%;
-            right: 18px;
-            font-size: 1.9em;
-            font-weight: 700;
-            color: var(--accent-orange);
-            text-shadow: 2px 2px 0 #000;
-            z-index: 50;
-            animation: comboIn 0.3s;
-            display: none;
-        }
-
-        /* ---- 阳光 / 豌豆动画 ---- */
-        .sun-drop {
-            position: fixed;
-            font-size: 1.8em;
-            pointer-events: none;
-            z-index: 200;
-            animation: sunDrop 1.4s forwards;
-        }
-
-        .pea-shot {
-            position: fixed;
-            font-size: 1.4em;
-            pointer-events: none;
-            z-index: 200;
-            animation: peaShoot 0.45s forwards;
-        }
-
-        /* ---- 结果界面 ---- */
-        .result-screen {
-            display: none;
-            min-height: 100vh;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .result-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 28px;
-            padding: 28px;
-            max-width: 580px;
-            margin: 20px auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            border: 5px solid var(--accent-gold);
-        }
-
-        .result-title { font-size: 2.2em; color: var(--accent-green); margin-bottom: 16px; font-weight: 700; }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 18px 0;
-        }
-
-        .stat-box {
-            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
-            border-radius: 14px;
-            padding: 14px;
-            border: 2px solid var(--accent-green);
-        }
-
-        .stat-label { font-size: 0.95em; color: #666; }
-        .stat-value { font-size: 1.9em; color: #2E7D32; font-weight: 700; }
-
-        .stars-display { font-size: 2.8em; margin: 18px 0; }
-
-        .reward-section {
-            background: linear-gradient(135deg, #FFF9C4, #FFF176);
-            border-radius: 18px;
-            padding: 18px;
-            margin: 18px 0;
-            border: 3px solid var(--accent-gold);
-        }
-
-        .reward-title { font-size: 1.4em; color: #F57F17; margin-bottom: 8px; font-weight: 700; }
-        .reward-plants { font-size: 2.8em; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .reward-plant { animation: rewardBounce 0.5s ease-out; animation-fill-mode: both; }
-
-        .play-again-btn {
-            padding: 14px 46px;
-            font-size: 1.4em;
-            font-family: inherit;
-            font-weight: 700;
-            background: linear-gradient(145deg, var(--accent-orange), #ff4500);
-            color: #fff;
-            border: 3px solid var(--accent-gold);
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 18px;
-            transition: all 0.3s;
-        }
-
-        .play-again-btn:hover { transform: scale(1.08); }
-
-        /* ---- 音效按钮 ---- */
-        .sound-toggle {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            font-size: 1.4em;
-            background: rgba(255,255,255,0.8);
-            border: none;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            cursor: pointer;
-            z-index: 999;
-        }
-
-        /* ---- 装饰云 ---- */
-        .cloud {
-            position: fixed;
-            font-size: 2.8em;
-            opacity: 0.55;
-            animation: cloudFloat 22s linear infinite;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        /* ========== 动画 ========== */
-        @keyframes fadeIn { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
-        @keyframes pulse { 0%,100% { box-shadow:0 8px 20px rgba(255,69,0,0.3); } 50% { box-shadow:0 8px 40px rgba(255,69,0,0.55); } }
-        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-        @keyframes zombieStep { 0% { transform: translateY(0) rotate(-2deg); } 100% { transform: translateY(-6px) rotate(2deg); } }
-        @keyframes plantAppear { from { transform:scale(0) rotate(-180deg); opacity:0; } to { transform:scale(1) rotate(0deg); opacity:1; } }
-        @keyframes bubblePop { from { transform:scale(0.6); opacity:0; } to { transform:scale(1); opacity:1; } }
-        @keyframes correctShake { 0%,100% { transform:scale(1); } 50% { transform:scale(1.08); } }
-        @keyframes wrongShake { 0%,100% { transform:translateX(0); } 20% { transform:translateX(-10px); } 40% { transform:translateX(10px); } 60% { transform:translateX(-8px); } 80% { transform:translateX(8px); } }
-        @keyframes timeoutFlash { 0%,100% { opacity:1; } 25% { opacity:0.3; } 50% { opacity:1; } 75% { opacity:0.3; } }
-        @keyframes feedbackPop { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
-        @keyframes waveIn { 0% { transform:translate(-50%,-50%) scale(0); opacity:0; } 25% { transform:translate(-50%,-50%) scale(1.2); opacity:1; } 65% { transform:translate(-50%,-50%) scale(1); opacity:1; } 100% { transform:translate(-50%,-50%) scale(0.5); opacity:0; } }
-        @keyframes comboIn { from { transform:scale(2); opacity:0; } to { transform:scale(1); opacity:1; } }
-        @keyframes sunDrop { 0% { transform:translateY(-40px) rotate(0deg); opacity:1; } 100% { transform:translateY(90px) rotate(360deg); opacity:0; } }
-        @keyframes peaShoot { 0% { transform:translateX(0); opacity:1; } 100% { transform:translateX(180px); opacity:0; } }
-        @keyframes rewardBounce { 0% { transform:scale(0) translateY(18px); } 60% { transform:scale(1.25) translateY(-8px); } 100% { transform:scale(1) translateY(0); } }
-        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        @keyframes cloudFloat { from { transform:translateX(-100px); } to { transform:translateX(calc(100vw + 100px)); } }
-        @keyframes dangerPulse { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-        @keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
-        @keyframes zombiesFeast { from { transform: translateX(-8px) rotate(-3deg) scale(1); } to { transform: translateX(8px) rotate(3deg) scale(1.05); } }
-        @keyframes eatenByZombie { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.3) rotate(10deg); opacity:0.6; } 100% { transform: scale(0) rotate(45deg); opacity:0; } }
-        @keyframes zombieRush { 0% { left: 85%; } 100% { left: 5%; } }
-
-        .hidden { display: none !important; }
-
-        /* ---- 响应式 ---- */
-        @media (max-width: 600px) {
-            .game-title { font-size: 1.6em; }
-            .problem-bubble { font-size: 1.7em; padding: 10px 18px; }
-            .answer-input { width: 120px; height: 56px; font-size: 1.9em; }
-            .top-bar { font-size: 0.85em; padding: 8px 12px; }
-            .result-stats { grid-template-columns: 1fr; }
-            .walking-zombie { transform: scale(0.8); }
-            .plant-defender { font-size: 2.8em; }
-            .zombie-walk-zone { height: 120px; }
-            .zombie-char { transform: scale(0.85); }
-            .zombie-char.zombie-big { transform: scale(1.1); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>贪吃蛇学习大冒险 · 一年级语文数学</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:"Comic Sans MS","PingFang SC","Microsoft YaHei",sans-serif;
+  background:linear-gradient(-45deg,#a1c4fd,#c2e9fb,#fbc2eb,#a6c1ee,#84fab0);
+  background-size:400% 400%;
+  animation:bgShift 18s ease infinite;
+  color:#333;user-select:none;
+}
+@keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.hidden{display:none!important;}
+/* ---------- 漂浮装饰 ---------- */
+#bgDeco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.floaty{position:absolute;font-size:34px;opacity:.5;animation:floaty linear infinite;}
+@keyframes floaty{
+  0%{transform:translateY(110vh) rotate(0deg);}
+  100%{transform:translateY(-15vh) rotate(360deg);}
+}
+/* ---------- 通用 ---------- */
+.screen{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.btn{
+  border:none;cursor:pointer;font-family:inherit;font-weight:bold;color:#fff;
+  border-radius:999px;padding:12px 30px;font-size:18px;
+  box-shadow:0 5px 0 rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.15);
+  transition:transform .12s,box-shadow .12s,filter .2s;
+}
+.btn:hover{filter:brightness(1.08);}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.18);}
+.btn-big{display:block;width:min(320px,80vw);margin:10px auto;font-size:20px;padding:15px;}
+.btn-primary{background:linear-gradient(135deg,#ff9a44,#ff5e62);}
+.btn-shop{background:linear-gradient(135deg,#f7b733,#fc4a1a);}
+.btn-info{background:linear-gradient(135deg,#36d1dc,#5b86e5);}
+.btn-green{background:linear-gradient(135deg,#56ab2f,#a8e063);}
+.btn-purple{background:linear-gradient(135deg,#7f53ac,#647dee);}
+.btn-small{padding:8px 18px;font-size:15px;background:linear-gradient(135deg,#36d1dc,#5b86e5);}
+.btn:disabled{filter:grayscale(.7);cursor:not-allowed;opacity:.7;}
+.coin-pill{
+  display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.85);
+  border-radius:999px;padding:7px 16px;font-size:17px;color:#b8860b;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);font-weight:bold;
+}
+.title-badge{
+  display:inline-block;background:linear-gradient(135deg,#f7971e,#ffd200);color:#7a4a00;
+  border-radius:999px;padding:7px 18px;font-weight:bold;font-size:16px;
+  box-shadow:0 3px 10px rgba(0,0,0,.15);
+}
+/* ---------- 首页 ---------- */
+.home-card{
+  position:relative;z-index:2;text-align:center;background:rgba(255,255,255,.72);
+  backdrop-filter:blur(8px);border-radius:32px;padding:38px 34px;max-width:520px;width:94vw;
+  box-shadow:0 20px 60px rgba(80,80,160,.25);border:3px solid rgba(255,255,255,.9);
+  animation:cardIn .6s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+.logo-snake{font-size:74px;animation:wiggle 2s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(0,0,0,.2));}
+@keyframes wiggle{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.1)}}
+.game-title{
+  font-size:clamp(30px,7vw,44px);margin:8px 0 4px;
+  background:linear-gradient(90deg,#ff5e62,#f7b733,#56ab2f,#36d1dc,#7f53ac,#ff5e62);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:rainbowText 5s linear infinite;
+}
+@keyframes rainbowText{to{background-position:300% 0}}
+.subtitle{color:#666;font-size:16px;margin-bottom:16px;}
+.home-stats{display:flex;gap:12px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.speed-row{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:16px;flex-wrap:wrap;}
+.speed-label{font-weight:bold;color:#557;font-size:15px;}
+.speed-btn{
+  border:3px solid transparent;font-family:inherit;font-weight:bold;font-size:15px;
+  padding:8px 16px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.65);color:#557;transition:.2s;
+}
+.speed-btn.active{background:linear-gradient(135deg,#56ab2f,#a8e063);color:#fff;box-shadow:0 4px 12px rgba(86,171,47,.4);transform:scale(1.08);}
+.mini-row{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.btn-mini{
+  border:2px solid #cdd7ff;font-family:inherit;font-weight:bold;font-size:14px;
+  padding:8px 18px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.7);color:#4a5a9a;transition:.2s;
+}
+.btn-mini:hover{background:#e8eeff;transform:scale(1.05);}
+#qSpeak{
+  position:absolute;top:14px;right:14px;font-size:20px;border:none;cursor:pointer;
+  background:#eef3ff;border-radius:50%;width:42px;height:42px;
+  box-shadow:0 3px 8px rgba(0,0,0,.12);transition:transform .15s;
+}
+#qSpeak:hover{transform:scale(1.15);background:#dce8ff;}
+/* ---------- 顶栏 ---------- */
+.bar{
+  width:100%;max-width:1100px;display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.75);backdrop-filter:blur(6px);border-radius:20px;
+  padding:10px 14px;box-shadow:0 6px 18px rgba(0,0,0,.1);z-index:3;flex-wrap:wrap;
+}
+.bar h2{font-size:20px;color:#4a4a8a;flex:1;text-align:center;}
+#soundBtn{
+  position:fixed;top:12px;right:12px;z-index:50;font-size:22px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.85);border-radius:50%;width:46px;height:46px;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .15s;
+}
+#soundBtn:active{transform:scale(.9);}
+/* ---------- 地图 ---------- */
+#scr-map{justify-content:flex-start;gap:10px;}
+#mapArea{
+  position:relative;width:100%;max-width:1100px;flex:1;min-height:0;
+  background:rgba(255,255,255,.35);border-radius:24px;overflow-y:auto;overflow-x:hidden;
+  box-shadow:inset 0 4px 20px rgba(0,0,0,.08);border:2px solid rgba(255,255,255,.8);
+}
+#mapInner{position:relative;width:100%;height:1050px;}
+#mapSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.map-node{
+  position:absolute;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;
+  border:4px solid #fff;font-size:24px;font-weight:bold;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;
+  box-shadow:0 6px 14px rgba(0,0,0,.25);transition:transform .15s;
+}
+.map-node:hover{transform:translate(-50%,-50%) scale(1.15);}
+.map-node .lv-num{font-size:20px;line-height:1;}
+.map-node .lv-stars{font-size:10px;line-height:1.1;letter-spacing:-1px;}
+.node-done{background:linear-gradient(135deg,#56ab2f,#a8e063);}
+.node-cur{background:linear-gradient(135deg,#ff9a44,#ff5e62);animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,94,98,.6)}50%{box-shadow:0 0 0 16px rgba(255,94,98,0)}}
+.node-lock{background:linear-gradient(135deg,#9e9e9e,#cfcfcf);cursor:not-allowed;}
+.node-tag{position:absolute;transform:translate(-50%,0);font-size:11px;font-weight:bold;color:#5a5a9a;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:8px;white-space:nowrap;}
+.map-legend{position:absolute;left:12px;top:10px;font-size:13px;color:#666;background:rgba(255,255,255,.8);padding:6px 10px;border-radius:10px;line-height:1.6;}
+/* ---------- 商城 ---------- */
+#scr-shop{justify-content:flex-start;gap:10px;}
+.tabs{display:flex;gap:8px;z-index:2;}
+.tab-btn{border:none;font-family:inherit;font-weight:bold;font-size:16px;padding:10px 22px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.6);color:#557;transition:.2s;}
+.tab-btn.active{background:linear-gradient(135deg,#7f53ac,#647dee);color:#fff;box-shadow:0 4px 12px rgba(100,100,200,.4);}
+#shopGrid{
+  width:100%;max-width:900px;flex:1;min-height:0;overflow-y:auto;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:6px 4px 20px;
+}
+.shop-item{
+  background:rgba(255,255,255,.85);border-radius:20px;padding:16px 10px;text-align:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.1);border:3px solid transparent;transition:.2s;
+  animation:cardIn .4s cubic-bezier(.2,1.4,.4,1);
+}
+.shop-item.equipped{border-color:#ffd200;box-shadow:0 0 18px rgba(255,210,0,.5);}
+.shop-icon{font-size:44px;margin-bottom:6px;min-height:52px;display:flex;align-items:center;justify-content:center;}
+.skin-dot{width:44px;height:44px;border-radius:50%;box-shadow:inset -6px -6px 0 rgba(0,0,0,.15);}
+.shop-name{font-weight:bold;color:#445;font-size:15px;margin-bottom:8px;}
+.shop-item .btn{padding:7px 16px;font-size:14px;}
+/* ---------- 游戏界面 ---------- */
+#scr-game{justify-content:flex-start;gap:8px;}
+.game-bar{font-size:15px;}
+#gameLevelName{font-weight:bold;color:#4a4a8a;font-size:16px;}
+#gameHearts{font-size:17px;letter-spacing:2px;}
+#gameProgress{font-weight:bold;color:#b8860b;background:rgba(255,255,255,.85);border-radius:999px;padding:6px 14px;box-shadow:0 3px 8px rgba(0,0,0,.1);}
+#canvasWrap{
+  position:relative;width:100%;max-width:860px;flex:1;min-height:0;display:flex;
+  align-items:center;justify-content:center;
+}
+#gameCanvas{
+  background:linear-gradient(160deg,#e8f5e9,#e3f2fd);
+  border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.2);border:4px solid #fff;
+  max-width:100%;max-height:100%;
+}
+#dpad{display:none;gap:6px;z-index:3;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px);}
+#dpad button{font-size:24px;border:none;border-radius:14px;background:rgba(255,255,255,.8);box-shadow:0 4px 0 rgba(0,0,0,.15);cursor:pointer;}
+#dpad button:active{transform:translateY(3px);box-shadow:none;}
+@media (pointer:coarse){#dpad{display:grid;}}
+/* ---------- 答题浮层 ---------- */
+#qOverlay{
+  position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
+  background:rgba(40,40,80,.45);backdrop-filter:blur(3px);border-radius:20px;animation:fadeIn .25s;
+}
+.q-card{
+  position:relative;
+  background:linear-gradient(160deg,#ffffff,#f3f7ff);border-radius:26px;padding:24px 26px;
+  width:min(460px,92%);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35);
+  border:4px solid #ffd76e;animation:qPop .35s cubic-bezier(.2,1.6,.4,1);
+}
+@keyframes qPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+#qTag{display:inline-block;background:linear-gradient(135deg,#36d1dc,#5b86e5);color:#fff;font-size:13px;font-weight:bold;padding:4px 14px;border-radius:999px;margin-bottom:10px;}
+#qText{font-size:clamp(24px,5vw,34px);font-weight:bold;color:#333;margin:8px 0;min-height:48px;}
+#qHint{color:#999;font-size:15px;margin-bottom:12px;min-height:20px;}
+#qChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.choice-btn{
+  border:3px solid #cdd7ff;background:#f5f8ff;border-radius:16px;padding:14px 6px;
+  font-size:22px;font-weight:bold;color:#4a5a9a;cursor:pointer;font-family:inherit;transition:.15s;
+}
+.choice-btn:hover{background:#e8eeff;transform:scale(1.04);}
+.choice-btn.right{background:#d4f7d4;border-color:#4caf50;color:#2e7d32;animation:rightFlash .5s;}
+.choice-btn.wrong{background:#ffd9d9;border-color:#f44336;color:#c62828;animation:shake .4s;}
+@keyframes rightFlash{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#qInputRow{display:flex;gap:10px;justify-content:center;}
+#qInput{
+  flex:1;max-width:240px;font-size:28px;text-align:center;padding:10px;border-radius:16px;
+  border:3px solid #cdd7ff;outline:none;font-family:inherit;color:#333;background:#fbfcff;
+}
+#qInput:focus{border-color:#5b86e5;box-shadow:0 0 12px rgba(91,134,229,.4);}
+#qEq{
+  flex:1.2;max-width:200px;font-size:24px;text-align:center;padding:10px;border-radius:16px;
+  border:3px solid #ffd76e;outline:none;font-family:inherit;color:#333;background:#fffdf5;
+}
+#qEq:focus{border-color:#ffb300;box-shadow:0 0 12px rgba(255,179,0,.4);}
+#qEqSign{font-size:30px;font-weight:bold;color:#b8860b;align-self:center;}
+/* ---------- 阳光与云朵 ---------- */
+#sun{
+  position:fixed;top:-50px;left:-50px;width:170px;height:170px;z-index:0;pointer-events:none;
+  background:radial-gradient(circle,#fff9c4 0%,#ffeb3b 45%,#fdd835 60%,rgba(253,216,53,0) 72%);
+  border-radius:50%;animation:sunPulse 4s ease-in-out infinite;
+}
+@keyframes sunPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+#sunRays{
+  position:absolute;inset:-40px;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(255,235,59,.5) 0deg 12deg,transparent 12deg 30deg,rgba(255,235,59,.5) 30deg 42deg,transparent 42deg 60deg,rgba(255,235,59,.5) 60deg 72deg,transparent 72deg 90deg,rgba(255,235,59,.5) 90deg 102deg,transparent 102deg 120deg,rgba(255,235,59,.5) 120deg 132deg,transparent 132deg 150deg,rgba(255,235,59,.5) 150deg 162deg,transparent 162deg 180deg,rgba(255,235,59,.5) 180deg 192deg,transparent 192deg 210deg,rgba(255,235,59,.5) 210deg 222deg,transparent 222deg 240deg,rgba(255,235,59,.5) 240deg 252deg,transparent 252deg 270deg,rgba(255,235,59,.5) 270deg 282deg,transparent 282deg 300deg,rgba(255,235,59,.5) 300deg 312deg,transparent 312deg 330deg,rgba(255,235,59,.5) 330deg 342deg,transparent 342deg 360deg);
+  animation:raysSpin 24s linear infinite;
+}
+@keyframes raysSpin{to{transform:rotate(360deg)}}
+.cloud{
+  position:fixed;z-index:0;pointer-events:none;background:rgba(255,255,255,.85);border-radius:999px;
+  width:110px;height:36px;box-shadow:28px -14px 0 6px rgba(255,255,255,.85),58px -2px 0 2px rgba(255,255,255,.85);
+  animation:cloudDrift linear infinite;opacity:.9;
+}
+@keyframes cloudDrift{from{transform:translateX(-20vw)}to{transform:translateX(120vw)}}
+#qFeedback{font-size:20px;font-weight:bold;margin-top:12px;min-height:28px;}
+.fb-right{color:#2e7d32;animation:rightFlash .5s;}
+.fb-wrong{color:#c62828;animation:shake .4s;}
+/* ---------- 通用弹窗 ---------- */
+#modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(30,30,60,.5);backdrop-filter:blur(4px);animation:fadeIn .25s;}
+.modal-card{
+  background:linear-gradient(160deg,#ffffff,#fdf6e3);border-radius:28px;padding:30px 28px;
+  width:min(440px,92vw);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.4);
+  border:4px solid #ffd76e;animation:qPop .4s cubic-bezier(.2,1.6,.4,1);max-height:86vh;overflow-y:auto;
+}
+.modal-card h2{font-size:26px;color:#4a4a8a;margin-bottom:8px;}
+.modal-card .big-emoji{font-size:60px;animation:wiggle 1.6s infinite;}
+.modal-card p{color:#666;font-size:16px;margin:8px 0;line-height:1.7;}
+.reward-line{font-size:20px;font-weight:bold;color:#b8860b;margin:10px 0;}
+.stars-big{font-size:44px;letter-spacing:6px;margin:6px 0;}
+.howto{text-align:left;font-size:15px;color:#555;line-height:2;}
+#fxCanvas{position:fixed;inset:0;z-index:55;pointer-events:none;}
+</style>
 </head>
 <body>
-    <button class="sound-toggle" onclick="toggleSound()" id="soundBtn">🔊</button>
+<div id="sun"><div id="sunRays"></div></div>
+<div class="cloud" style="top:12%;animation-duration:55s;"></div>
+<div class="cloud" style="top:26%;animation-duration:75s;animation-delay:-30s;transform:scale(.7);"></div>
+<div class="cloud" style="top:6%;animation-duration:95s;animation-delay:-60s;transform:scale(.55);"></div>
+<div id="bgDeco"></div>
+<button id="soundBtn" title="音乐开关">🔊</button>
 
-    <div class="cloud" style="top:5%;animation-delay:0s;">☁️</div>
-    <div class="cloud" style="top:14%;animation-delay:8s;">☁️</div>
-    <div class="cloud" style="top:8%;animation-delay:15s;">☁️</div>
-
-    <!-- ========== 超时被吃覆盖层 ========== -->
-    <div class="eaten-overlay" id="eatenOverlay">
-        <div class="eaten-zombies-container" id="eatenZombiesContainer">
-            <!-- 僵尸将通过JS动态生成 -->
-        </div>
-        <div class="eaten-text">💀 僵尸把你吃掉了！</div>
-        <div class="eaten-sub" id="eatenSub">正确答案是：<b id="eatenAnswer"></b></div>
-        <button class="eaten-btn" onclick="continueAfterEaten()">🌱 继续战斗！</button>
+<!-- 首页 -->
+<section id="scr-home" class="screen">
+  <div class="home-card">
+    <div class="logo-snake">🐍</div>
+    <h1 class="game-title">贪吃蛇学习大冒险</h1>
+    <p class="subtitle">一年级语文 · 数学（上下册）<br>吃果子、答题目、赚金币、换装扮！</p>
+    <div class="home-stats">
+      <span class="title-badge" id="homeTitle">🎓 小学童</span>
+      <span class="coin-pill">🪙 <b id="homeCoins">0</b></span>
     </div>
-
-    <!-- ========== 开始界面 ========== -->
-    <div class="start-screen" id="startScreen">
-        <div class="game-title">🌻 植物大战算术僵尸 🧟</div>
-        <div class="subtitle">
-            <p>🧮 答对算术题，种植植物保卫家园！</p>
-            <p style="font-size:0.82em;color:#666;margin-top:8px;">限时答题 · 僵尸逼近 · 超时被吃！</p>
-        </div>
-
-        <!-- 限时模式 -->
-        <div class="config-section">
-            <div class="config-label">⏱️ 每题限时：</div>
-            <div class="btn-group">
-                <button class="diff-btn" onclick="setTimeLimit(10)" id="tl-10">🔥 10秒快答</button>
-                <button class="diff-btn active" onclick="setTimeLimit(20)" id="tl-20">🕐 20秒答题</button>
-            </div>
-        </div>
-
-        <!-- 计算范围 -->
-        <div class="config-section">
-            <div class="config-label">🔢 计算范围：</div>
-            <div class="btn-group">
-                <button class="diff-btn active" onclick="setDifficulty('easy')" id="diff-easy">🌱 20以内<br><small>加减法</small></button>
-                <button class="diff-btn" onclick="setDifficulty('medium')" id="diff-medium">🧟 50以内<br><small>加减法</small></button>
-                <button class="diff-btn" onclick="setDifficulty('hard')" id="diff-hard">👹 100以内<br><small>加减法</small></button>
-            </div>
-        </div>
-
-        <!-- 题目数量 -->
-        <div class="config-section">
-            <div class="config-label">📝 题目数量：</div>
-            <div class="btn-group">
-                <button class="diff-btn" onclick="setQuestionCount(10)" id="q10">10题</button>
-                <button class="diff-btn active" onclick="setQuestionCount(20)" id="q20">20题</button>
-                <button class="diff-btn" onclick="setQuestionCount(30)" id="q30">30题</button>
-            </div>
-        </div>
-
-        <button class="start-btn" onclick="startGame()">🎮 开始保卫家园！</button>
-
-        <div class="rules-box">
-            <p>🌟 <b>游戏规则：</b></p>
-            <p>✅ 答对一题 → 种植一棵植物 + 获得阳光</p>
-            <p>⚡ 答得越快 → 阳光奖励越多</p>
-            <p>🔥 连续答对 → 连击加分！</p>
-            <p>❌ 答错一题 → 僵尸靠近一步</p>
-            <p>💀 <b>超时未答 → 僵尸冲过来把你吃掉！显示正确答案后继续</b></p>
-            <p>⏳ <b>10秒快答：极速挑战，僵尸跑得更快！</b></p>
-        </div>
+    <button class="btn btn-big btn-primary" id="btnStart">🚀 开始冒险</button>
+    <button class="btn btn-big btn-shop" id="btnShop">🛒 金币商城</button>
+    <button class="btn btn-big btn-info" id="btnHow">📖 玩法说明</button>
+    <div class="speed-row">
+      <span class="speed-label">🐍 蛇速：</span>
+      <button class="speed-btn" data-sp="slow">🐢 慢速</button>
+      <button class="speed-btn" data-sp="normal">🐇 中速</button>
+      <button class="speed-btn" data-sp="fast">🚀 快速</button>
     </div>
-
-    <!-- ========== 游戏界面 ========== -->
-    <div class="game-screen" id="gameScreen">
-        <!-- 顶部信息栏 -->
-        <div class="top-bar">
-            <div class="info-item"><span class="sun-icon">☀️</span><span>阳光: <b id="sunCount">0</b></span></div>
-            <div class="info-item"><span>⏱️</span><span class="timer" id="timerDisplay">00:00</span></div>
-            <div class="info-item"><span>📝</span>第 <b id="questionNum">1</b>/<b id="totalQuestions">20</b> 题</div>
-            <div class="info-item"><span>🔥</span>连击: <b id="comboCount">0</b></div>
-            <div class="info-item"><span id="timeLimitIcon">🕐</span>剩余: <b id="questionTimerDisplay" style="color:#ff6b35;">20</b>s</div>
-        </div>
-
-        <!-- 题目倒计时条 -->
-        <div class="question-timer-bar">
-            <div class="question-timer-fill safe" id="questionTimerFill" style="width:100%;">100%</div>
-        </div>
-
-        <!-- 进度条 -->
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width:0%;">0%</div>
-        </div>
-
-        <!-- 僵尸行走区 -->
-        <div class="zombie-walk-zone" id="zombieWalkZone">
-            <div class="plant-defender" id="plantDefender">🌻</div>
-            <div class="walking-zombie" id="walkingZombie" style="left:85%;">
-                <!-- CSS僵尸将通过JS动态生成 -->
-            </div>
-        </div>
-
-        <!-- 草坪 -->
-        <div class="lawn">
-            <div style="color:#fff;font-size:0.95em;margin-bottom:8px;position:relative;z-index:2;">🏠 我的花园（答对种植物）：</div>
-            <div class="plant-collection" id="plantCollection"></div>
-
-            <!-- 题目 -->
-            <div class="zombie-area">
-                <div class="problem-bubble" id="problemBubble">
-                    <span id="problemText">5 + 3 = ?</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 答题区 -->
-        <div class="answer-area">
-            <input type="number" class="answer-input" id="answerInput" placeholder="?" onkeydown="handleKeyDown(event)" autofocus>
-            <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">🌱 发射豌豆！</button>
-        </div>
-
-        <!-- 数字键盘 -->
-        <div class="number-pad" id="numberPad">
-            <button class="num-btn" onclick="numInput(1)">1</button>
-            <button class="num-btn" onclick="numInput(2)">2</button>
-            <button class="num-btn" onclick="numInput(3)">3</button>
-            <button class="num-btn" onclick="numInput(4)">4</button>
-            <button class="num-btn" onclick="numInput(5)">5</button>
-            <button class="num-btn" onclick="numInput(6)">6</button>
-            <button class="num-btn" onclick="numInput(7)">7</button>
-            <button class="num-btn" onclick="numInput(8)">8</button>
-            <button class="num-btn" onclick="numInput(9)">9</button>
-            <button class="num-btn clear-btn" onclick="clearInput()">⌫</button>
-            <button class="num-btn" onclick="numInput(0)">0</button>
-            <button class="num-btn enter-btn" onclick="checkAnswer()">✅ 确定</button>
-        </div>
-
-        <!-- 提示 -->
-        <div class="hint-section">
-            <button class="hint-btn" onclick="showHint()">💡 要提示吗？(-10阳光)</button>
-            <div class="hint-text" id="hintText"></div>
-        </div>
-
-        <!-- 反馈 -->
-        <div class="feedback" id="feedback"></div>
+    <div class="mini-row">
+      <button class="btn-mini" id="btnBackup">💾 导出备份</button>
+      <button class="btn-mini" id="btnImport">📂 导入存档</button>
+      <button class="btn-mini" id="btnAutoread">🔇 自动读题：关</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
+  </div>
+</section>
 
-    <!-- ========== 结果界面 ========== -->
-    <div class="result-screen" id="resultScreen">
-        <div class="result-card">
-            <div class="result-title" id="resultTitle">🎉 保卫战胜利！</div>
-            <div class="stars-display" id="starsDisplay">⭐⭐⭐</div>
+<!-- 地图 -->
+<section id="scr-map" class="screen hidden">
+  <div class="bar">
+    <button class="btn btn-small" id="mapBack">🏠 主页</button>
+    <h2>🗺️ 冒险地图 · 30 关</h2>
+    <span class="title-badge" id="mapTitle">🎓 小学童</span>
+    <span class="coin-pill">🪙 <b id="mapCoins">0</b></span>
+  </div>
+  <div id="mapArea"><div id="mapInner"><svg id="mapSvg"></svg></div></div>
+</section>
 
-            <div class="result-stats">
-                <div class="stat-box"><div class="stat-label">☀️ 总阳光</div><div class="stat-value" id="finalSun">0</div></div>
-                <div class="stat-box"><div class="stat-label">✅ 正确率</div><div class="stat-value" id="finalAccuracy">0%</div></div>
-                <div class="stat-box"><div class="stat-label">⏱️ 用时</div><div class="stat-value" id="finalTime">0:00</div></div>
-                <div class="stat-box"><div class="stat-label">🔥 最高连击</div><div class="stat-value" id="finalCombo">0</div></div>
-                <div class="stat-box"><div class="stat-label">⚡ 平均每题</div><div class="stat-value" id="finalAvgTime">0s</div></div>
-                <div class="stat-box"><div class="stat-label">💀 被吃次数</div><div class="stat-value" id="finalEaten">0</div></div>
-                <div class="stat-box"><div class="stat-label">🏆 总分</div><div class="stat-value" id="finalScore">0</div></div>
-            </div>
+<!-- 商城 -->
+<section id="scr-shop" class="screen hidden">
+  <div class="bar">
+    <button class="btn btn-small" id="shopBack">🗺️ 地图</button>
+    <h2>🛒 金币商城</h2>
+    <span class="coin-pill">🪙 <b id="shopCoins">0</b></span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="skin">🎨 蛇蛇皮肤</button>
+    <button class="tab-btn" data-tab="hat">🎩 帽子头饰</button>
+    <button class="tab-btn" data-tab="title">🏅 荣誉称号</button>
+  </div>
+  <div id="shopGrid"></div>
+</section>
 
-            <div class="reward-section">
-                <div class="reward-title">🎁 获得的植物奖励：</div>
-                <div class="reward-plants" id="rewardPlants"></div>
-            </div>
-
-            <div id="resultMessage" style="font-size:1.15em;color:#555;margin:14px 0;"></div>
-
-            <button class="play-again-btn" onclick="resetGame()">🔄 再来一局！</button>
+<!-- 游戏 -->
+<section id="scr-game" class="screen hidden">
+  <div class="bar game-bar">
+    <button class="btn btn-small" id="gameExit">🗺️ 地图</button>
+    <div id="gameLevelName">第1关</div>
+    <div id="gameHearts">❤️❤️❤️</div>
+    <div id="gameProgress">⭐ 0/6</div>
+    <span class="coin-pill">🪙 <b id="gameCoins">0</b></span>
+    <button class="btn btn-small btn-purple" id="gamePause">⏸️</button>
+  </div>
+  <div id="canvasWrap">
+    <canvas id="gameCanvas" width="800" height="560"></canvas>
+    <div id="qOverlay" class="hidden">
+      <div class="q-card">
+        <button id="qSpeak" title="再读一遍题目">🔊</button>
+        <div id="qTag">语文</div>
+        <div id="qText"></div>
+        <div id="qHint"></div>
+        <div id="qChoices"></div>
+        <div id="qInputRow" class="hidden">
+          <input id="qEq" class="hidden" autocomplete="off" inputmode="text" placeholder="算式 如 25-14">
+          <span id="qEqSign" class="hidden">=</span>
+          <input id="qInput" autocomplete="off" placeholder="输入答案">
+          <button class="btn btn-green" id="qSubmit">确定</button>
         </div>
+        <div id="qFeedback"></div>
+      </div>
     </div>
-
-    <!-- 连击显示 -->
-    <div class="combo-display" id="comboDisplay"></div>
-
-    <script>
-        /* ========================================================
-           CSS僵尸生成函数
-        ======================================================== */
-        function createZombieChar(type = 'normal') {
-            const zombie = document.createElement('div');
-            zombie.className = `zombie-char zombie-${type}`;
-            zombie.innerHTML = `
-                <div class="zombie-head">
-                    <div class="zombie-eye left">
-                        <div class="zombie-pupil"></div>
-                    </div>
-                    <div class="zombie-eye right">
-                        <div class="zombie-pupil"></div>
-                    </div>
-                    <div class="zombie-mouth">
-                        <div class="zombie-tooth"></div>
-                        <div class="zombie-tooth"></div>
-                        <div class="zombie-tooth"></div>
-                    </div>
-                </div>
-                <div class="zombie-body">
-                    <div class="zombie-arm left">
-                        <div class="zombie-hand"></div>
-                    </div>
-                    <div class="zombie-arm right">
-                        <div class="zombie-hand"></div>
-                    </div>
-                    <div class="zombie-leg left">
-                        <div class="zombie-shoe"></div>
-                    </div>
-                    <div class="zombie-leg right">
-                        <div class="zombie-shoe"></div>
-                    </div>
-                </div>
-            `;
-            return zombie;
-        }
-
-        /* ========================================================
-           游戏状态
-        ======================================================== */
-        let gameState = {
-            difficulty: 'easy',
-            questionCount: 20,
-            timeLimit: 20,
-            currentQuestion: 0,
-            score: 0,
-            sunCount: 0,
-            combo: 0,
-            maxCombo: 0,
-            correctCount: 0,
-            wrongCount: 0,
-            eatenCount: 0,
-            startTime: null,
-            questionStartTime: null,
-            timerInterval: null,
-            questionTimerInterval: null,
-            questionTimeLeft: 0,
-            totalAnswerTime: 0,
-            plants: [],
-            soundEnabled: true,
-            problems: [],
-            hintUsed: false,
-            isProcessing: false
-        };
-
-        const zombieTypes = ['normal', 'fast', 'ghost', 'big', 'elite', 'alien'];
-        const zombieNames = ['小僵尸', '快僵尸', '幽灵僵尸', '大僵尸', '精英僵尸', '外星僵尸'];
-        const plantList = ['🌻','🌷','🌹','🌺','🌸','💐','🪴','🌵','🍀','🌿','☘️','🍃','🎋','🎍','🌾','🪷','🪻','🌼'];
-        const defenderPlants = ['🌻','🫛','🥜','🍒','❄️','🟢','🪴','🔥','🧱','🌽'];
-
-        const correctMessages = ['太棒了！🎉','真聪明！🧠','完美！💯','厉害！🌟','好样的！👍','太强了！💪','漂亮！✨','没错！🎯','天才！🏆','666！🔥','真厉害呀！👏','算得真快！⚡'];
-        const wrongMessages = ['再想想哦~ 🤔','加油！💪','别着急~ 🌈','下一题一定行！🌟','没关系，继续！😊'];
-        const comboMessages = ['','','连击x2！🔥','三连击！🔥🔥','四连击！太强了！🔥🔥🔥','五连击！无敌！💥','超级连击！🌟💥🌟','疯狂连击！🎆','传说连击！👑','神级连击！🏆👑🏆'];
-
-        /* ========================================================
-           音效
-        ======================================================== */
-        let audioCtx = null;
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        function playSound(type) {
-            if (!gameState.soundEnabled) return;
-            try {
-                initAudio();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const t = audioCtx.currentTime;
-                switch(type) {
-                    case 'correct':
-                        osc.frequency.setValueAtTime(523,t);
-                        osc.frequency.setValueAtTime(659,t+0.1);
-                        osc.frequency.setValueAtTime(784,t+0.2);
-                        gain.gain.setValueAtTime(0.3,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+0.4);
-                        osc.start(t); osc.stop(t+0.4);
-                        break;
-                    case 'wrong':
-                        osc.frequency.setValueAtTime(200,t);
-                        osc.frequency.setValueAtTime(150,t+0.2);
-                        gain.gain.setValueAtTime(0.3,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+0.4);
-                        osc.start(t); osc.stop(t+0.4);
-                        break;
-                    case 'combo':
-                        osc.frequency.setValueAtTime(880,t);
-                        osc.frequency.setValueAtTime(1100,t+0.1);
-                        osc.frequency.setValueAtTime(1320,t+0.15);
-                        gain.gain.setValueAtTime(0.2,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+0.3);
-                        osc.start(t); osc.stop(t+0.3);
-                        break;
-                    case 'click':
-                        osc.frequency.setValueAtTime(600,t);
-                        gain.gain.setValueAtTime(0.1,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+0.1);
-                        osc.start(t); osc.stop(t+0.1);
-                        break;
-                    case 'timeout':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(180,t);
-                        osc.frequency.linearRampToValueAtTime(80,t+0.8);
-                        gain.gain.setValueAtTime(0.35,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+0.9);
-                        osc.start(t); osc.stop(t+0.9);
-                        break;
-                    case 'eaten':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(400,t);
-                        osc.frequency.linearRampToValueAtTime(60,t+1);
-                        gain.gain.setValueAtTime(0.4,t);
-                        gain.gain.exponentialRampToValueAtTime(0.01,t+1.1);
-                        osc.start(t); osc.stop(t+1.1);
-                        break;
-                }
-            } catch(e) {}
-        }
-
-        function toggleSound() {
-            gameState.soundEnabled = !gameState.soundEnabled;
-            document.getElementById('soundBtn').textContent = gameState.soundEnabled ? '🔊' : '🔇';
-        }
-
-        /* ========================================================
-           设置
-        ======================================================== */
-        function setTimeLimit(sec) {
-            gameState.timeLimit = sec;
-            ['tl-10','tl-20'].forEach(id => document.getElementById(id).classList.remove('active'));
-            document.getElementById('tl-' + sec).classList.add('active');
-        }
-
-        function setDifficulty(diff) {
-            gameState.difficulty = diff;
-            document.querySelectorAll('.diff-btn[id^="diff-"]').forEach(b => b.classList.remove('active'));
-            document.getElementById('diff-' + diff).classList.add('active');
-        }
-
-        function setQuestionCount(count) {
-            gameState.questionCount = count;
-            document.querySelectorAll('.diff-btn[id^="q"]').forEach(b => b.classList.remove('active'));
-            document.getElementById('q' + count).classList.add('active');
-        }
-
-        /* ========================================================
-           题目生成
-        ======================================================== */
-        function generateProblem() {
-            let maxNum;
-            switch(gameState.difficulty) {
-                case 'easy':   maxNum = 20;  break;
-                case 'medium': maxNum = 50;  break;
-                case 'hard':   maxNum = 100; break;
-            }
-
-            const operator = Math.random() > 0.5 ? '+' : '-';
-            let a, b, answer;
-
-            if (operator === '+') {
-                a = Math.floor(Math.random() * maxNum) + 1;
-                b = Math.floor(Math.random() * (maxNum - a)) + 1;
-                answer = a + b;
-            } else {
-                answer = Math.floor(Math.random() * (maxNum - 1)) + 1;
-                b = Math.floor(Math.random() * answer) + 1;
-                a = answer + b;
-                answer = a - b;
-            }
-
-            return { a, b, operator, answer };
-        }
-
-        /* ========================================================
-           开始游戏
-        ======================================================== */
-        function startGame() {
-            playSound('click');
-
-            gameState.currentQuestion = 0;
-            gameState.score = 0;
-            gameState.sunCount = 50;
-            gameState.combo = 0;
-            gameState.maxCombo = 0;
-            gameState.correctCount = 0;
-            gameState.wrongCount = 0;
-            gameState.eatenCount = 0;
-            gameState.totalAnswerTime = 0;
-            gameState.plants = [];
-            gameState.problems = [];
-            gameState.startTime = Date.now();
-            gameState.isProcessing = false;
-
-            for (let i = 0; i < gameState.questionCount; i++) {
-                gameState.problems.push(generateProblem());
-            }
-
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameScreen').style.display = 'block';
-            document.getElementById('resultScreen').style.display = 'none';
-            document.getElementById('eatenOverlay').classList.remove('show');
-
-            document.getElementById('totalQuestions').textContent = gameState.questionCount;
-            document.getElementById('plantCollection').innerHTML = '';
-            document.getElementById('timeLimitIcon').textContent = gameState.timeLimit === 10 ? '🔥' : '🕐';
-
-            // 初始化僵尸显示
-            updateWalkingZombie();
-
-            updateSunDisplay();
-            startTimer();
-            showQuestion();
-            showWaveNotice('🧟 僵尸来了！准备战斗！');
-        }
-
-        function updateWalkingZombie() {
-            const zi = Math.min(Math.floor(gameState.currentQuestion / (gameState.questionCount / zombieTypes.length)), zombieTypes.length - 1);
-            const zombieContainer = document.getElementById('walkingZombie');
-            zombieContainer.innerHTML = '';
-            zombieContainer.appendChild(createZombieChar(zombieTypes[zi]));
-        }
-
-        function startTimer() {
-            if (gameState.timerInterval) clearInterval(gameState.timerInterval);
-            gameState.timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-                const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
-                const sec = (elapsed % 60).toString().padStart(2, '0');
-                const display = document.getElementById('timerDisplay');
-                display.textContent = min + ':' + sec;
-                if (elapsed > 300) {
-                    display.style.color = '#ff0000';
-                    display.style.animation = 'blink 0.5s infinite';
-                }
-            }, 1000);
-        }
-
-        /* ========================================================
-           显示题目 + 启动题目倒计时
-        ======================================================== */
-        function showQuestion() {
-            if (gameState.currentQuestion >= gameState.questionCount) {
-                endGame();
-                return;
-            }
-
-            gameState.isProcessing = false;
-            document.getElementById('submitBtn').disabled = false;
-
-            const problem = gameState.problems[gameState.currentQuestion];
-            document.getElementById('problemText').textContent = problem.a + ' ' + problem.operator + ' ' + problem.b + ' = ?';
-            document.getElementById('questionNum').textContent = gameState.currentQuestion + 1;
-
-            const pct = (gameState.currentQuestion / gameState.questionCount) * 100;
-            const fill = document.getElementById('progressFill');
-            fill.style.width = pct + '%';
-            fill.textContent = Math.round(pct) + '%';
-
-            // 更新僵尸外观
-            updateWalkingZombie();
-
-            document.getElementById('plantDefender').textContent = defenderPlants[gameState.currentQuestion % defenderPlants.length];
-            document.getElementById('plantDefender').classList.remove('eaten');
-
-            document.getElementById('walkingZombie').style.transition = 'none';
-            document.getElementById('walkingZombie').style.left = '85%';
-            void document.getElementById('walkingZombie').offsetLeft;
-            document.getElementById('walkingZombie').style.transition = 'left 0.3s linear';
-
-            const input = document.getElementById('answerInput');
-            input.value = '';
-            input.className = 'answer-input';
-            input.focus();
-
-            document.getElementById('hintText').textContent = '';
-            gameState.hintUsed = false;
-            gameState.questionStartTime = Date.now();
-
-            const fb = document.getElementById('feedback');
-            fb.textContent = '';
-            fb.className = 'feedback';
-
-            startQuestionTimer();
-
-            if (gameState.currentQuestion === Math.floor(gameState.questionCount / 2)) {
-                showWaveNotice('⚠️ 一大波僵尸正在接近！');
-            }
-            if (gameState.currentQuestion === gameState.questionCount - 3) {
-                showWaveNotice('🚨 最终波次！最后3题！');
-            }
-        }
-
-        /* ========================================================
-           题目限时倒计时
-        ======================================================== */
-        function startQuestionTimer() {
-            clearQuestionTimer();
-
-            const limit = gameState.timeLimit;
-            gameState.questionTimeLeft = limit;
-
-            updateQuestionTimerUI(limit, limit);
-
-            gameState.questionTimerInterval = setInterval(() => {
-                gameState.questionTimeLeft -= 0.25;
-                if (gameState.questionTimeLeft <= 0) {
-                    gameState.questionTimeLeft = 0;
-                    clearQuestionTimer();
-                    handleTimeout();
-                }
-                updateQuestionTimerUI(gameState.questionTimeLeft, limit);
-
-                const elapsed = limit - gameState.questionTimeLeft;
-                const progress = Math.min(elapsed / limit, 0.92);
-                const zombie = document.getElementById('walkingZombie');
-                zombie.style.transition = 'left 0.3s linear';
-                zombie.style.left = (85 - progress * 78) + '%';
-            }, 250);
-        }
-
-        function clearQuestionTimer() {
-            if (gameState.questionTimerInterval) {
-                clearInterval(gameState.questionTimerInterval);
-                gameState.questionTimerInterval = null;
-            }
-        }
-
-        function updateQuestionTimerUI(remaining, limit) {
-            const pct = Math.max(0, (remaining / limit) * 100);
-            const fill = document.getElementById('questionTimerFill');
-            fill.style.width = pct + '%';
-            fill.textContent = Math.ceil(remaining) + 's';
-
-            document.getElementById('questionTimerDisplay').textContent = Math.ceil(remaining);
-
-            fill.classList.remove('safe', 'warn', 'danger');
-            if (pct > 50) {
-                fill.classList.add('safe');
-            } else if (pct > 25) {
-                fill.classList.add('warn');
-            } else {
-                fill.classList.add('danger');
-            }
-        }
-
-        /* ========================================================
-           超时处理 → 僵尸冲过来吃掉你！
-        ======================================================== */
-        function handleTimeout() {
-            if (gameState.isProcessing) return;
-            gameState.isProcessing = true;
-            document.getElementById('submitBtn').disabled = true;
-
-            playSound('timeout');
-            gameState.eatenCount++;
-            gameState.wrongCount++;
-            gameState.combo = 0;
-            document.getElementById('comboCount').textContent = 0;
-
-            const problem = gameState.problems[gameState.currentQuestion];
-
-            const zombie = document.getElementById('walkingZombie');
-            zombie.style.transition = 'left 0.5s ease-in';
-            zombie.style.left = '2%';
-
-            setTimeout(() => {
-                document.getElementById('plantDefender').classList.add('eaten');
-                playSound('eaten');
-            }, 500);
-
-            setTimeout(() => {
-                document.getElementById('eatenAnswer').textContent = problem.a + ' ' + problem.operator + ' ' + problem.b + ' = ' + problem.answer;
-                
-                // 生成被吃时的僵尸
-                const container = document.getElementById('eatenZombiesContainer');
-                container.innerHTML = '';
-                for (let i = 0; i < 3; i++) {
-                    container.appendChild(createZombieChar(zombieTypes[i % zombieTypes.length]));
-                }
-                
-                document.getElementById('eatenOverlay').classList.add('show');
-            }, 900);
-
-            const input = document.getElementById('answerInput');
-            input.classList.add('timeout');
-
-            gameState.sunCount = Math.max(0, gameState.sunCount - 30);
-            updateSunDisplay();
-
-            const fb = document.getElementById('feedback');
-            fb.textContent = '💀 超时！僵尸把你吃了！(-30☀️)';
-            fb.className = 'feedback timeout-fb';
-        }
-
-        function continueAfterEaten() {
-            document.getElementById('eatenOverlay').classList.remove('show');
-            gameState.currentQuestion++;
-            setTimeout(showQuestion, 300);
-        }
-
-        /* ========================================================
-           检查答案
-        ======================================================== */
-        function checkAnswer() {
-            if (gameState.isProcessing) return;
-
-            const input = document.getElementById('answerInput');
-            const userAnswer = parseInt(input.value);
-
-            if (isNaN(userAnswer)) {
-                input.classList.add('wrong');
-                setTimeout(() => input.classList.remove('wrong'), 450);
-                return;
-            }
-
-            gameState.isProcessing = true;
-            document.getElementById('submitBtn').disabled = true;
-            clearQuestionTimer();
-
-            const problem = gameState.problems[gameState.currentQuestion];
-            const answerTime = (Date.now() - gameState.questionStartTime) / 1000;
-            gameState.totalAnswerTime += answerTime;
-
-            if (userAnswer === problem.answer) {
-                handleCorrect(answerTime);
-            } else {
-                handleWrong(problem.answer);
-            }
-
-            gameState.currentQuestion++;
-            setTimeout(showQuestion, 900);
-        }
-
-        /* ========================================================
-           答对
-        ======================================================== */
-        function handleCorrect(answerTime) {
-            playSound('correct');
-            gameState.correctCount++;
-            gameState.combo++;
-            if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
-
-            const baseScore = 100;
-            const speedBonus = Math.max(0, Math.floor((gameState.timeLimit * 0.3 - answerTime) * 20));
-            let comboBonus = gameState.combo * 20;
-            if (gameState.hintUsed) comboBonus = Math.floor(comboBonus / 2);
-
-            const modeBonus = gameState.timeLimit === 10 ? 30 : 0;
-
-            const totalSun = baseScore + speedBonus + comboBonus + modeBonus;
-            gameState.sunCount += totalSun;
-            gameState.score += totalSun;
-
-            updateSunDisplay();
-            document.getElementById('comboCount').textContent = gameState.combo;
-
-            document.getElementById('answerInput').classList.add('correct');
-
-            // 僵尸被击退动画
-            const zombie = document.getElementById('walkingZombie');
-            const zombieEl = zombie.querySelector('.zombie-char');
-            if (zombieEl) {
-                zombieEl.classList.add('hit');
-                setTimeout(() => zombieEl.classList.remove('hit'), 300);
-            }
-
-            addPlant();
-
-            let msg = correctMessages[Math.floor(Math.random() * correctMessages.length)];
-            if (speedBonus > 80) msg += ' ⚡神速！';
-            if (modeBonus > 0) msg += ' 🔥快答奖励！';
-            document.getElementById('feedback').textContent = msg + ' (+' + totalSun + '☀️)';
-            document.getElementById('feedback').className = 'feedback correct-fb';
-
-            if (gameState.combo >= 2) {
-                showCombo(gameState.combo);
-                playSound('combo');
-            }
-
-            createSunDrop();
-        }
-
-        /* ========================================================
-           答错
-        ======================================================== */
-        function handleWrong(correctAnswer) {
-            playSound('wrong');
-            gameState.wrongCount++;
-            gameState.combo = 0;
-            gameState.sunCount = Math.max(0, gameState.sunCount - 20);
-            updateSunDisplay();
-
-            document.getElementById('comboCount').textContent = 0;
-            document.getElementById('answerInput').classList.add('wrong');
-
-            const zombie = document.getElementById('walkingZombie');
-            zombie.style.transition = 'left 0.4s ease';
-            zombie.style.left = '35%';
-
-            let msg = wrongMessages[Math.floor(Math.random() * wrongMessages.length)];
-            document.getElementById('feedback').textContent = msg + ' 正确答案是 ' + correctAnswer;
-            document.getElementById('feedback').className = 'feedback wrong-fb';
-
-            document.getElementById('comboDisplay').style.display = 'none';
-        }
-
-        /* ========================================================
-           UI 辅助
-        ======================================================== */
-        function updateSunDisplay() {
-            document.getElementById('sunCount').textContent = gameState.sunCount;
-        }
-
-        function addPlant() {
-            const coll = document.getElementById('plantCollection');
-            const plant = plantList[Math.floor(Math.random() * plantList.length)];
-            const span = document.createElement('span');
-            span.className = 'planted';
-            span.textContent = plant;
-            coll.appendChild(span);
-            gameState.plants.push(plant);
-        }
-
-        function showCombo(combo) {
-            const d = document.getElementById('comboDisplay');
-            const idx = Math.min(combo, comboMessages.length - 1);
-            d.textContent = comboMessages[idx] || '🔥x' + combo + '！';
-            d.style.display = 'block';
-            d.style.animation = 'none';
-            setTimeout(() => d.style.animation = 'comboIn 0.3s', 10);
-        }
-
-        function showWaveNotice(text) {
-            const n = document.createElement('div');
-            n.className = 'wave-notice';
-            n.textContent = text;
-            document.body.appendChild(n);
-            setTimeout(() => n.remove(), 2500);
-        }
-
-        function createSunDrop() {
-            const s = document.createElement('div');
-            s.className = 'sun-drop';
-            s.textContent = '☀️';
-            s.style.left = (Math.random() * 50 + 25) + '%';
-            s.style.top = '28%';
-            document.body.appendChild(s);
-            setTimeout(() => s.remove(), 1400);
-        }
-
-        /* ========================================================
-           提示
-        ======================================================== */
-        function showHint() {
-            if (gameState.sunCount < 10) {
-                document.getElementById('hintText').textContent = '阳光不够啦！需要10阳光 💰';
-                return;
-            }
-
-            gameState.sunCount -= 10;
-            gameState.hintUsed = true;
-            updateSunDisplay();
-
-            const p = gameState.problems[gameState.currentQuestion];
-            let hint = '';
-
-            if (p.operator === '+') {
-                if (p.a + p.b <= 20) {
-                    hint = '💡 伸出手指头数一数，' + p.a + ' 再加 ' + p.b + ' 个';
-                } else {
-                    const tens = Math.floor(p.a / 10) * 10;
-                    hint = '💡 先算 ' + tens + ' + ' + (Math.floor(p.b / 10) * 10) + '，再加上个位数';
-                }
-            } else {
-                if (p.a <= 20) {
-                    hint = '💡 ' + p.a + ' 个苹果，吃掉 ' + p.b + ' 个，还剩几个？';
-                } else {
-                    hint = '💡 先算个位 ' + (p.a % 10) + ' - ' + (p.b % 10) + '，再算十位';
-                }
-            }
-
-            document.getElementById('hintText').textContent = hint;
-        }
-
-        /* ========================================================
-           数字键盘
-        ======================================================== */
-        function numInput(num) {
-            playSound('click');
-            const input = document.getElementById('answerInput');
-            if (input.value.length < 3) input.value += num;
-        }
-
-        function clearInput() {
-            playSound('click');
-            const input = document.getElementById('answerInput');
-            input.value = input.value.slice(0, -1);
-        }
-
-        function handleKeyDown(event) {
-            if (event.key === 'Enter') checkAnswer();
-        }
-
-        /* ========================================================
-           结束游戏
-        ======================================================== */
-        function endGame() {
-            clearQuestionTimer();
-            clearInterval(gameState.timerInterval);
-
-            const totalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
-            const accuracy = gameState.questionCount > 0 ?
-                Math.round((gameState.correctCount / gameState.questionCount) * 100) : 0;
-            const avgTime = gameState.correctCount > 0 ?
-                (gameState.totalAnswerTime / gameState.correctCount).toFixed(1) : 0;
-
-            let stars = 0;
-            if (accuracy >= 95) stars += 2;
-            else if (accuracy >= 80) stars += 1;
-
-            const threshold = gameState.timeLimit === 10 ? 3 : 6;
-            const threshold2 = gameState.timeLimit === 10 ? 5 : 12;
-            if (avgTime <= threshold) stars += 2;
-            else if (avgTime <= threshold2) stars += 1;
-
-            if (gameState.maxCombo >= 8) stars += 1;
-            else if (gameState.maxCombo >= 5) stars += 0.5;
-
-            stars = Math.min(Math.round(stars), 5);
-
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('resultScreen').style.display = 'block';
-
-            const min = Math.floor(totalTime / 60);
-            const sec = totalTime % 60;
-            document.getElementById('finalSun').textContent = gameState.sunCount;
-            document.getElementById('finalAccuracy').textContent = accuracy + '%';
-            document.getElementById('finalTime').textContent = min + ':' + sec.toString().padStart(2, '0');
-            document.getElementById('finalCombo').textContent = gameState.maxCombo;
-            document.getElementById('finalAvgTime').textContent = avgTime + 's';
-            document.getElementById('finalEaten').textContent = gameState.eatenCount;
-            document.getElementById('finalScore').textContent = gameState.score;
-
-            document.getElementById('starsDisplay').textContent = '⭐'.repeat(stars) + '☆'.repeat(5 - stars);
-
-            const modeLabel = gameState.timeLimit === 10 ? '10秒快答' : '20秒答题';
-            const rangeLabel = gameState.difficulty === 'easy' ? '20以内' : gameState.difficulty === 'medium' ? '50以内' : '100以内';
-
-            if (accuracy >= 90 && stars >= 4 && gameState.eatenCount === 0) {
-                document.getElementById('resultTitle').textContent = '🎉 完美胜利！僵尸被全部消灭！';
-                document.getElementById('resultMessage').textContent = '在【' + modeLabel + '·' + rangeLabel + '】模式下表现完美！戴夫为你骄傲！🧢';
-            } else if (accuracy >= 70) {
-                document.getElementById('resultTitle').textContent = '🌟 保卫战成功！';
-                document.getElementById('resultMessage').textContent = '【' + modeLabel + '·' + rangeLabel + '】做得不错！再练练可以更好哦！💪';
-            } else {
-                document.getElementById('resultTitle').textContent = '🌈 继续努力！';
-                document.getElementById('resultMessage').textContent = '没关系！在【' + modeLabel + '·' + rangeLabel + '】多练习就会越来越厉害的！🌱';
-            }
-
-            const rc = document.getElementById('rewardPlants');
-            rc.innerHTML = '';
-            let rewardCount = 0;
-            if (stars >= 1) rewardCount = 2;
-            if (stars >= 2) rewardCount = 3;
-            if (stars >= 3) rewardCount = 5;
-            if (stars >= 4) rewardCount = 7;
-            if (stars >= 5) rewardCount = 10;
-
-            const sk = Object.values({
-                sunflower: '🌻', peashooter: '🫛', wallnut: '🥜',
-                cherrybomb: '🍒', snowpea: '❄️', repeater: '🟢',
-                chomper: '🪴', torchwood: '🔥', tallnut: '🧱', cobcannon: '🌽'
-            });
-            for (let i = 0; i < rewardCount; i++) {
-                const sp = document.createElement('span');
-                sp.className = 'reward-plant';
-                sp.textContent = sk[i % sk.length];
-                sp.style.animationDelay = (i * 0.1) + 's';
-                rc.appendChild(sp);
-            }
-
-            document.getElementById('progressFill').style.width = '100%';
-            document.getElementById('progressFill').textContent = '100%';
-        }
-
-        /* ========================================================
-           重置
-        ======================================================== */
-        function resetGame() {
-            clearQuestionTimer();
-            clearInterval(gameState.timerInterval);
-            document.getElementById('resultScreen').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'flex';
-            document.getElementById('comboDisplay').style.display = 'none';
-            document.getElementById('eatenOverlay').classList.remove('show');
-        }
-
-        window.onload = function() {
-            document.getElementById('answerInput').focus();
-        };
-    </script>
+  </div>
+  <div id="dpad">
+    <span></span><button data-d="up">⬆️</button><span></span>
+    <button data-d="left">⬅️</button><button data-d="down">⬇️</button><button data-d="right">➡️</button>
+  </div>
+</section>
+
+<canvas id="fxCanvas"></canvas>
+<div id="modal" class="hidden"><div class="modal-card" id="modalCard"></div></div>
+
+<script>
+/* ==================== 工具函数 ==================== */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=arr=>arr[rnd(0,arr.length-1)];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ==================== 语文题库（一年级上下册常用汉字） ==================== */
+const HANZI_SHANG=[
+{zi:"天",py:"tiān",word:"天空"},{zi:"地",py:"dì",word:"大地"},{zi:"人",py:"rén",word:"人们"},
+{zi:"你",py:"nǐ",word:"你好"},{zi:"我",py:"wǒ",word:"我们"},{zi:"他",py:"tā",word:"他们"},
+{zi:"一",py:"yī",word:"一个"},{zi:"二",py:"èr",word:"二月"},{zi:"三",py:"sān",word:"三天"},
+{zi:"四",py:"sì",word:"四季"},{zi:"五",py:"wǔ",word:"五月"},{zi:"上",py:"shàng",word:"上学"},
+{zi:"下",py:"xià",word:"下雨"},{zi:"口",py:"kǒu",word:"人口"},{zi:"耳",py:"ěr",word:"耳朵"},
+{zi:"目",py:"mù",word:"目光"},{zi:"手",py:"shǒu",word:"小手"},{zi:"足",py:"zú",word:"足球"},
+{zi:"站",py:"zhàn",word:"站立"},{zi:"坐",py:"zuò",word:"坐下"},{zi:"日",py:"rì",word:"日子"},
+{zi:"月",py:"yuè",word:"月亮"},{zi:"水",py:"shuǐ",word:"水果"},{zi:"火",py:"huǒ",word:"火车"},
+{zi:"山",py:"shān",word:"大山"},{zi:"石",py:"shí",word:"石头"},{zi:"田",py:"tián",word:"田地"},
+{zi:"禾",py:"hé",word:"禾苗"},{zi:"云",py:"yún",word:"白云"},{zi:"雨",py:"yǔ",word:"雨水"},
+{zi:"风",py:"fēng",word:"大风"},{zi:"花",py:"huā",word:"花朵"},{zi:"鸟",py:"niǎo",word:"小鸟"},
+{zi:"虫",py:"chóng",word:"虫子"},{zi:"六",py:"liù",word:"六个"},{zi:"七",py:"qī",word:"七月"},
+{zi:"八",py:"bā",word:"八个"},{zi:"九",py:"jiǔ",word:"九天"},{zi:"十",py:"shí",word:"十个"},
+{zi:"爸",py:"bà",word:"爸爸"},{zi:"妈",py:"mā",word:"妈妈"},{zi:"马",py:"mǎ",word:"小马"},
+{zi:"土",py:"tǔ",word:"土地"},{zi:"不",py:"bù",word:"不是"},{zi:"画",py:"huà",word:"画画"},
+{zi:"打",py:"dǎ",word:"打球"},{zi:"棋",py:"qí",word:"下棋"},{zi:"鸡",py:"jī",word:"小鸡"},
+{zi:"字",py:"zì",word:"生字"},{zi:"词",py:"cí",word:"词语"},{zi:"语",py:"yǔ",word:"语文"},
+{zi:"句",py:"jù",word:"句子"},{zi:"子",py:"zi",word:"孩子"},{zi:"桌",py:"zhuō",word:"桌子"},
+{zi:"纸",py:"zhǐ",word:"白纸"},{zi:"文",py:"wén",word:"文化"},{zi:"数",py:"shù",word:"数学"},
+{zi:"学",py:"xué",word:"学习"},{zi:"音",py:"yīn",word:"音乐"},{zi:"乐",py:"yuè",word:"乐器"},
+{zi:"妹",py:"mèi",word:"妹妹"},{zi:"奶",py:"nǎi",word:"奶奶"},{zi:"白",py:"bái",word:"白色"},
+{zi:"皮",py:"pí",word:"果皮"},{zi:"小",py:"xiǎo",word:"大小"},{zi:"桥",py:"qiáo",word:"小桥"},
+{zi:"台",py:"tái",word:"讲台"},{zi:"雪",py:"xuě",word:"雪花"},{zi:"儿",py:"ér",word:"儿子"},
+{zi:"草",py:"cǎo",word:"小草"},{zi:"家",py:"jiā",word:"大家"},{zi:"是",py:"shì",word:"是的"},
+{zi:"车",py:"chē",word:"汽车"},{zi:"羊",py:"yáng",word:"山羊"},{zi:"走",py:"zǒu",word:"走路"},
+{zi:"也",py:"yě",word:"也好"}
+];
+const HANZI_XIA=[
+{zi:"春",py:"chūn",word:"春天"},{zi:"冬",py:"dōng",word:"冬天"},{zi:"飞",py:"fēi",word:"飞机"},
+{zi:"入",py:"rù",word:"进入"},{zi:"姓",py:"xìng",word:"姓名"},{zi:"什",py:"shén",word:"什么"},
+{zi:"么",py:"me",word:"怎么"},{zi:"双",py:"shuāng",word:"一双"},{zi:"国",py:"guó",word:"中国"},
+{zi:"王",py:"wáng",word:"大王"},{zi:"方",py:"fāng",word:"方向"},{zi:"青",py:"qīng",word:"青草"},
+{zi:"清",py:"qīng",word:"清水"},{zi:"气",py:"qì",word:"空气"},{zi:"晴",py:"qíng",word:"晴天"},
+{zi:"情",py:"qíng",word:"心情"},{zi:"请",py:"qǐng",word:"请问"},{zi:"生",py:"shēng",word:"生日"},
+{zi:"左",py:"zuǒ",word:"左边"},{zi:"右",py:"yòu",word:"右边"},{zi:"红",py:"hóng",word:"红色"},
+{zi:"时",py:"shí",word:"时间"},{zi:"动",py:"dòng",word:"运动"},{zi:"万",py:"wàn",word:"一万"},
+{zi:"吃",py:"chī",word:"吃饭"},{zi:"叫",py:"jiào",word:"叫好"},{zi:"主",py:"zhǔ",word:"主人"},
+{zi:"江",py:"jiāng",word:"长江"},{zi:"住",py:"zhù",word:"住房"},{zi:"没",py:"méi",word:"没有"},
+{zi:"以",py:"yǐ",word:"可以"},{zi:"多",py:"duō",word:"多少"},{zi:"会",py:"huì",word:"开会"},
+{zi:"北",py:"běi",word:"北京"},{zi:"京",py:"jīng",word:"京城"},{zi:"门",py:"mén",word:"大门"},
+{zi:"广",py:"guǎng",word:"广场"},{zi:"过",py:"guò",word:"过去"},{zi:"各",py:"gè",word:"各自"},
+{zi:"种",py:"zhǒng",word:"种子"},{zi:"样",py:"yàng",word:"样子"},{zi:"伙",py:"huǒ",word:"伙伴"},
+{zi:"伴",py:"bàn",word:"同伴"},{zi:"这",py:"zhè",word:"这里"},{zi:"太",py:"tài",word:"太阳"},
+{zi:"阳",py:"yáng",word:"阳光"},{zi:"校",py:"xiào",word:"学校"},{zi:"秋",py:"qiū",word:"秋天"},
+{zi:"金",py:"jīn",word:"金色"},{zi:"因",py:"yīn",word:"因为"},{zi:"为",py:"wèi",word:"为了"},
+{zi:"河",py:"hé",word:"小河"},{zi:"说",py:"shuō",word:"说话"},{zi:"听",py:"tīng",word:"听见"},
+{zi:"哥",py:"gē",word:"哥哥"},{zi:"单",py:"dān",word:"单独"},{zi:"居",py:"jū",word:"居住"},
+{zi:"招",py:"zhāo",word:"招手"},{zi:"呼",py:"hū",word:"呼吸"},{zi:"快",py:"kuài",word:"快乐"},
+{zi:"玩",py:"wán",word:"玩耍"},{zi:"很",py:"hěn",word:"很好"},{zi:"当",py:"dāng",word:"当时"},
+{zi:"讲",py:"jiǎng",word:"讲话"},{zi:"行",py:"xíng",word:"行人"},{zi:"许",py:"xǔ",word:"许多"},
+{zi:"思",py:"sī",word:"思念"},{zi:"床",py:"chuáng",word:"木床"},{zi:"前",py:"qián",word:"前面"},
+{zi:"光",py:"guāng",word:"光明"},{zi:"低",py:"dī",word:"低头"},{zi:"故",py:"gù",word:"故乡"},
+{zi:"乡",py:"xiāng",word:"家乡"},{zi:"色",py:"sè",word:"颜色"},{zi:"外",py:"wài",word:"外面"},
+{zi:"看",py:"kàn",word:"看见"},{zi:"晚",py:"wǎn",word:"晚上"},{zi:"笑",py:"xiào",word:"微笑"},
+{zi:"再",py:"zài",word:"再见"}
+];
+const HANZI_ALL=HANZI_SHANG.concat(HANZI_XIA);
+
+/* ==================== 存档系统 ==================== */
+const SAVE_KEY="snake_learn_save_v1";
+let save;
+function loadSave(){
+  try{save=JSON.parse(localStorage.getItem(SAVE_KEY))||null;}catch(e){save=null;}
+  if(!save)save={coins:50,unlocked:1,stars:{},owned:["skin_green","hat_none","title_1"],equip:{skin:"skin_green",hat:"hat_none",title:"title_1"},sound:true,speed:"normal"};
+  if(!save.speed)save.speed="normal";
+  if(typeof save.autoread!=="boolean")save.autoread=false;/* 读题默认关闭，点击喇叭才读 */
+}
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+loadSave();
+
+/* ==================== 音效系统（WebAudio 合成，无需外部文件） ==================== */
+const Sound={
+  ctx:null,bgmTimer:null,bgmStep:0,
+  ensure(){
+    if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+    if(this.ctx&&this.ctx.state==="suspended")this.ctx.resume();
+  },
+  tone(f,dur=0.15,type="sine",vol=0.2,delay=0){
+    if(!save.sound)return;this.ensure();if(!this.ctx)return;
+    const t=this.ctx.currentTime+delay;
+    const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);g.connect(this.ctx.destination);
+    o.start(t);o.stop(t+dur+0.05);
+  },
+  click(){this.tone(700,.06,"square",.08);},
+  eat(){this.tone(420,.07,"square",.12);this.tone(640,.07,"square",.1,.05);},
+  coin(){this.tone(988,.09,"triangle",.2);this.tone(1319,.14,"triangle",.2,.09);},
+  correct(){[523,659,784,1047].forEach((f,i)=>this.tone(f,.12,"triangle",.22,i*0.09));},
+  wrong(){this.tone(200,.25,"sawtooth",.18);this.tone(150,.3,"sawtooth",.15,.1);},
+  hurt(){this.tone(180,.2,"square",.2);},
+  levelup(){[523,587,659,784,880,1047].forEach((f,i)=>this.tone(f,.16,"triangle",.22,i*0.1));},
+  buy(){[784,988,1175].forEach((f,i)=>this.tone(f,.12,"sine",.2,i*0.08));},
+  /* 真人语音（自动挑选最自然的中文发音人） */
+  voice:null,
+  initVoice(){
+    try{
+      if(!("speechSynthesis" in window))return;
+      const pickV=()=>{
+        const vs=speechSynthesis.getVoices();if(!vs.length)return;
+        const zh=vs.filter(v=>/zh|cmn|中文|Chinese|Mandarin|普通话/i.test(v.lang+" "+v.name));
+        if(!zh.length)return;
+        const pref=["Xiaoxiao","Xiaoyi","Yunye","Yunxia","Yunjian","Tingting","Meijia","Huihui","Yaoyao","Google 普通话","Google 中文","Sinji","Lili","Ting","Mei"];
+        for(const p of pref){const v=zh.find(v=>v.name.includes(p));if(v){Sound.voice=v;return;}}
+        Sound.voice=zh[0];
+      };
+      pickV();
+      speechSynthesis.onvoiceschanged=pickV;
+    }catch(e){}
+  },
+  speak(text,rate=0.98,pitch=1.25){
+    if(!save.sound)return;
+    try{
+      if(!("speechSynthesis" in window))return;
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang="zh-CN";u.rate=rate;u.pitch=pitch;u.volume=1;
+      if(this.voice)u.voice=this.voice;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  },
+  readQ(text){this.speak(text,0.88,1.1);},
+  praise(){this.speak(pick(["你真棒！","太厉害了！","回答正确，你真聪明！","完全正确，继续加油！","好样的，你真是个小学霸！"]))},
+  encourage(){this.speak(pick(["没关系，继续加油！","别灰心，你一定可以的！","再想一想，下次一定对！"]))},
+  praiseCoin(){this.speak(pick(["真棒，金币到手啦！","哇，好多金币！","太厉害了，金币加十！"]))},
+  startBgm(){
+    if(this.bgmTimer||!save.sound)return;this.ensure();
+    const scale=[262,294,330,392,440,523,587,659];
+    const mel=[0,2,4,2,5,4,2,0,4,5,7,5,4,2,1,2];
+    this.bgmTimer=setInterval(()=>{
+      if(!save.sound){this.stopBgm();return;}
+      const n=mel[this.bgmStep%mel.length];
+      this.tone(scale[n],.22,"sine",.06);
+      if(this.bgmStep%4===0)this.tone(scale[n]/2,.3,"triangle",.04);
+      this.bgmStep++;
+    },320);
+  },
+  stopBgm(){if(this.bgmTimer){clearInterval(this.bgmTimer);this.bgmTimer=null;}}
+};
+Sound.initVoice();
+$("#soundBtn").addEventListener("click",()=>{
+  save.sound=!save.sound;persist();
+  $("#soundBtn").textContent=save.sound?"🔊":"🔇";
+  if(save.sound){Sound.startBgm();Sound.click();}else Sound.stopBgm();
+});
+
+/* ==================== 全屏粒子/彩带特效 ==================== */
+const fx=$("#fxCanvas"),fctx=fx.getContext("2d");
+let fxParts=[],fxRunning=false;
+function fxResize(){fx.width=innerWidth;fx.height=innerHeight;}
+fxResize();addEventListener("resize",fxResize);
+function confetti(n=120){
+  const colors=["#ff5e62","#f7b733","#56ab2f","#36d1dc","#7f53ac","#ffd200"];
+  for(let i=0;i<n;i++){
+    fxParts.push({x:Math.random()*fx.width,y:-20-Math.random()*fx.height*0.3,
+      vx:(Math.random()-.5)*2,vy:2+Math.random()*3,r:4+Math.random()*5,
+      c:pick(colors),rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.2,life:1});
+  }
+  if(!fxRunning){fxRunning=true;fxLoop();}
+}
+function fxLoop(){
+  fctx.clearRect(0,0,fx.width,fx.height);
+  fxParts=fxParts.filter(p=>p.y<fx.height+30);
+  for(const p of fxParts){
+    p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+    fctx.save();fctx.translate(p.x,p.y);fctx.rotate(p.rot);
+    fctx.fillStyle=p.c;fctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);fctx.restore();
+  }
+  if(fxParts.length){requestAnimationFrame(fxLoop);}else{fxRunning=false;fctx.clearRect(0,0,fx.width,fx.height);}
+}
+/* 背景漂浮装饰 */
+(function(){
+  const deco=$("#bgDeco"),icons=["🌟","🎈","☁️","🍎","📚","✏️","🌈","⭐","🎵","🍀"];
+  for(let i=0;i<14;i++){
+    const s=document.createElement("span");s.className="floaty";s.textContent=pick(icons);
+    s.style.left=Math.random()*96+"vw";
+    s.style.animationDuration=(14+Math.random()*16)+"s";
+    s.style.animationDelay=(-Math.random()*20)+"s";
+    s.style.fontSize=(22+Math.random()*26)+"px";
+    deco.appendChild(s);
+  }
+})();
+/* ==================== 扩展题库：字词句拼音 + 数学全领域 ==================== */
+/* --- 补充汉字（并入总字库） --- */
+const EXTRA_CHARS=[
+{zi:"们",py:"men",word:"我们"},{zi:"的",py:"de",word:"好的"},{zi:"了",py:"le",word:"来了"},
+{zi:"好",py:"hǎo",word:"好人"},{zi:"在",py:"zài",word:"现在"},{zi:"现",py:"xiàn",word:"现在"},
+{zi:"还",py:"hái",word:"还有"},{zi:"球",py:"qiú",word:"皮球"},{zi:"书",py:"shū",word:"书本"},
+{zi:"本",py:"běn",word:"本子"},{zi:"笔",py:"bǐ",word:"铅笔"},{zi:"尺",py:"chǐ",word:"尺子"},
+{zi:"包",py:"bāo",word:"书包"},{zi:"跑",py:"pǎo",word:"跑步"},{zi:"跳",py:"tiào",word:"跳高"},
+{zi:"高",py:"gāo",word:"高兴"},{zi:"兴",py:"xìng",word:"高兴"},{zi:"歌",py:"gē",word:"唱歌"},
+{zi:"舞",py:"wǔ",word:"跳舞"},{zi:"朋",py:"péng",word:"朋友"},{zi:"友",py:"yǒu",word:"朋友"},
+{zi:"老",py:"lǎo",word:"老师"},{zi:"师",py:"shī",word:"老师"},{zi:"同",py:"tóng",word:"同学"},
+{zi:"班",py:"bān",word:"上班"},{zi:"课",py:"kè",word:"上课"},{zi:"早",py:"zǎo",word:"早上"},
+{zi:"午",py:"wǔ",word:"中午"},{zi:"星",py:"xīng",word:"星星"},{zi:"电",py:"diàn",word:"电话"},
+{zi:"灯",py:"dēng",word:"电灯"},{zi:"窗",py:"chuāng",word:"窗户"},{zi:"房",py:"fáng",word:"房子"},
+{zi:"园",py:"yuán",word:"公园"},{zi:"树",py:"shù",word:"大树"},{zi:"林",py:"lín",word:"树林"},
+{zi:"湖",py:"hú",word:"湖水"},{zi:"海",py:"hǎi",word:"大海"},{zi:"鱼",py:"yú",word:"小鱼"},
+{zi:"猫",py:"māo",word:"小猫"},{zi:"狗",py:"gǒu",word:"小狗"},{zi:"兔",py:"tù",word:"小兔"},
+{zi:"牛",py:"niú",word:"小牛"},{zi:"鸭",py:"yā",word:"鸭子"},{zi:"鹅",py:"é",word:"白鹅"},
+{zi:"刀",py:"dāo",word:"小刀"},{zi:"旗",py:"qí",word:"国旗"},{zi:"巾",py:"jīn",word:"毛巾"}
+];
+EXTRA_CHARS.forEach(c=>HANZI_ALL.push(c));
+const ZI2PY={};HANZI_ALL.forEach(h=>{if(!ZI2PY[h.zi])ZI2PY[h.zi]=h.py;});
+
+/* --- 词语库（拼音自动从字库生成） --- */
+const WORD_STRS=["天空","大地","人们","你好","我们","他们","上学","下雨","人口","耳朵","目光","小手","足球","站立","坐下","日子","月亮","水果","火车","大山","石头","田地","白云","雨水","大风","花朵","小鸟","虫子","爸爸","妈妈","小马","土地","不是","画画","打球","下棋","小鸡","生字","词语","语文","句子","孩子","桌子","白纸","文化","数学","学习","音乐","妹妹","奶奶","白色","果皮","大小","小桥","雪花","儿子","小草","大家","汽车","山羊","走路","春天","冬天","飞机","姓名","什么","怎么","中国","方向","青草","清水","空气","晴天","心情","请问","生日","左边","右边","红色","时间","运动","吃饭","主人","长江","没有","可以","多少","开会","北京","大门","广场","过去","种子","样子","伙伴","这里","太阳","阳光","学校","秋天","金色","因为","小河","说话","听见","哥哥","招手","快乐","玩耍","讲话","许多","木床","前面","光明","低头","故乡","家乡","颜色","外面","看见","晚上","微笑","再见","皮球","书本","本子","铅笔","尺子","书包","跑步","跳高","高兴","唱歌","跳舞","朋友","老师","同学","上课","早上","中午","星星","电话","电灯","窗户","房子","公园","大树","树林","湖水","大海","小鱼","小猫","小狗","小兔","小牛","鸭子","白鹅","小刀","国旗","好的","来了","现在","还有"];
+const WORDS=WORD_STRS.map(w=>{
+  let py="",ok=true;
+  for(const ch of w){if(ZI2PY[ch])py+=(py?" ":"")+ZI2PY[ch];else{ok=false;break;}}
+  return ok?{w,py}:null;
+}).filter(Boolean);
+
+/* --- 量词库 --- */
+const LIANGCI=[
+{s:"一(　)小鸟",a:"只",opts:["只","个","本","条"]},
+{s:"一(　)马",a:"匹",opts:["匹","只","个","头"]},
+{s:"一(　)牛",a:"头",opts:["头","只","匹","条"]},
+{s:"一(　)书",a:"本",opts:["本","个","只","张"]},
+{s:"一(　)铅笔",a:"支",opts:["支","本","个","把"]},
+{s:"一(　)鱼",a:"条",opts:["条","只","头","匹"]},
+{s:"一(　)花",a:"朵",opts:["朵","个","支","本"]},
+{s:"一(　)椅子",a:"把",opts:["把","个","条","本"]},
+{s:"一(　)飞机",a:"架",opts:["架","个","只","辆"]},
+{s:"一(　)汽车",a:"辆",opts:["辆","架","只","头"]},
+{s:"一(　)白云",a:"朵",opts:["朵","个","片","条"]},
+{s:"一(　)同学",a:"个",opts:["个","只","条","本"]}
+];
+/* --- 反义词库 --- */
+const FANYICI=[["大","小"],["多","少"],["上","下"],["左","右"],["前","后"],["来","去"],["高","低"],["长","短"],["白","黑"],["天","地"],["开","关"],["出","入"],["南","北"],["早","晚"],["笑","哭"],["好","坏"],["冷","热"],["快","慢"],["远","近"],["有","无"]];
+/* --- 句子选字填空 --- */
+const JUZI=[
+{s:"蓝蓝的___上飘着白云。",a:"天",opts:["天","地","手","口"]},
+{s:"弯弯的___儿挂在天上。",a:"月",opts:["月","日","水","火"]},
+{s:"我背着书___去上学。",a:"包",opts:["包","跑","泡","炮"]},
+{s:"小鸟在树上唱___。",a:"歌",opts:["歌","哥","可","河"]},
+{s:"小鱼在___里游来游去。",a:"水",opts:["水","火","山","田"]},
+{s:"老师教我们写___。",a:"字",opts:["字","子","自","只"]},
+{s:"我们是___国人。",a:"中",opts:["中","种","忠","钟"]},
+{s:"小明___得真快。",a:"跑",opts:["跑","泡","抱","饱"]},
+{s:"请把门___好。",a:"关",opts:["关","天","夫","大"]},
+{s:"太阳从___方升起。",a:"东",opts:["东","西","南","北"]},
+{s:"我家有一只小花___。",a:"猫",opts:["猫","描","苗","田"]},
+{s:"同学们在___场上做游戏。",a:"操",opts:["操","草","早","澡"]}
+];
+/* --- 标点符号 --- */
+const BIAODIAN=[
+{s:"今天的天气真好呀(　)",a:"！",opts:["！","？","。","……"]},
+{s:"你叫什么名字(　)",a:"？",opts:["？","。","！","……"]},
+{s:"我们是一年级的小学生(　)",a:"。",opts:["。","？","！","……"]},
+{s:"公园里有桃花、杏花(　)还有许多许多花。",a:"……",opts:["……","？","！","。"]}
+];
+/* --- 拼音知识 --- */
+const PYKNOW=[
+{q:"下面哪个是声母？",a:"b",opts:["b","a","o","ü"]},
+{q:"下面哪个是韵母？",a:"a",opts:["a","b","p","m"]},
+{q:"下面哪个是整体认读音节？",a:"zhi",opts:["zhi","ba","ma","hu"]},
+{q:"“ü”和 j 相拼时，正确写法是？",a:"ju",opts:["ju","jü","jou","jiu"]},
+{q:"“wǒ”的声调是第几声？",a:"第三声",opts:["第一声","第二声","第三声","第四声"]},
+{q:"“mā ma（妈妈）”的第二个“ma”读什么声？",a:"轻声",opts:["轻声","第一声","第二声","第四声"]},
+{q:"b、p、m、f 属于什么？",a:"声母",opts:["声母","韵母","整体认读音节","声调"]},
+{q:"“mā”的声调是第几声？",a:"第一声",opts:["第一声","第二声","第三声","第四声"]},
+{q:"下面哪个是整体认读音节？",a:"wu",opts:["wu","na","le","ge"]},
+{q:"a、o、e 属于什么？",a:"韵母",opts:["韵母","声母","声调","整体认读音节"]}
+];
+/* --- 图形与分类 --- */
+const SHAPE_Q=[
+{q:"红领巾的形状是？",a:"三角形",opts:["三角形","正方形","圆形","长方形"]},
+{q:"数学书封面的形状是？",a:"长方形",opts:["长方形","正方形","圆形","三角形"]},
+{q:"硬币的面是什么形状？",a:"圆形",opts:["圆形","三角形","正方形","长方形"]},
+{q:"魔方的形状是？",a:"正方体",opts:["正方体","长方体","球","圆柱"]},
+{q:"皮球的形状是？",a:"球",opts:["球","正方体","长方体","圆柱"]},
+{q:"易拉罐（饮料罐）的形状是？",a:"圆柱",opts:["圆柱","球","正方体","长方体"]},
+{q:"冰箱的形状是？",a:"长方体",opts:["长方体","正方体","球","圆柱"]},
+{q:"下面哪个不是水果？",a:"白菜",opts:["苹果","香蕉","白菜","西瓜"]},
+{q:"下面哪个不是动物？",a:"汽车",opts:["小猫","小狗","汽车","小兔"]},
+{q:"下面哪个不是学习用品？",a:"饼干",opts:["铅笔","尺子","饼干","本子"]},
+{q:"🔺🔺⭕🔺⭕ 这里有几个三角形？",a:"3 个",opts:["2 个","3 个","4 个","5 个"]}
+];
+/* --- 人民币 --- */
+const RMB_Q=[
+{q:"1 元 = (　) 角",a:"10 角",opts:["10 角","5 角","2 角","100 角"]},
+{q:"1 角 = (　) 分",a:"10 分",opts:["10 分","5 分","2 分","100 分"]},
+{q:"一张 10 元可以换几张 5 元？",a:"2 张",opts:["2 张","5 张","10 张","1 张"]},
+{q:"一支铅笔 5 角，一块橡皮 3 角，一共多少钱？",a:"8 角",opts:["8 角","2 角","7 角","10 角"]},
+{q:"一个本子 2 元，付给售货员 5 元，应找回多少钱？",a:"3 元",opts:["3 元","2 元","7 元","5 元"]}
+];
+/* --- 应用题模板（键盘输入列式计算结果） --- */
+const WORDPROB=[
+{t:"小明有 {a} 支铅笔，妈妈又给他买了 {b} 支，现在一共有多少支？",op:"+"},
+{t:"一班有 {a} 个男生和 {b} 个女生，一共有多少个同学？",op:"+"},
+{t:"停车场有 {a} 辆车，开走了 {b} 辆，还剩多少辆？",op:"-"},
+{t:"小红做了 {a} 朵红花和 {b} 朵黄花，红花比黄花多几朵？",op:"-"},
+{t:"图书角有 {a} 本书，借出去 {b} 本，还剩多少本？",op:"-"},
+{t:"小丽有 {a} 张贴纸，送给同学 {b} 张，还剩多少张？",op:"-"},
+{t:"树上原来有 {a} 只小鸟，飞走了 {b} 只，又飞来 {c} 只，现在有多少只？",op:"-+"},
+{t:"爸爸买了 {a} 个苹果，吃了 {b} 个，又买来 {c} 个，现在有多少个？",op:"-+"},
+{t:"公交车上有 {a} 人，到站下去 {b} 人，又上来 {c} 人，现在车上有多少人？",op:"-+"}
+];
+
+/* ==================== 各题型生成器 ==================== */
+/* 语文 · 看拼音写词语（键盘输入） */
+function genQ_writeWord(){
+  const item=pick(WORDS);
+  return {kind:"input",tag:"语文 · 看拼音写词语",q:"根据拼音写词语",
+    hint:`${item.py}`,
+    answer:item.w,inputMode:"text",ph:"输入两个字",
+    say:`请根据拼音写词语。`};
+}
+/* 语文 · 词语拼音选择 */
+function genQ_pyWord(){
+  const item=pick(WORDS);
+  const opts=[item.py];let g=0;
+  while(opts.length<4&&g++<60){const o=pick(WORDS).py;if(!opts.includes(o))opts.push(o);}
+  shuffle(opts);
+  return {kind:"choice",tag:"语文 · 词语拼音",q:`“ ${item.w} ”的正确拼音是？`,hint:"注意声调和轻声哦",
+    options:opts,answer:item.py,say:`词语，${item.w}，的正确拼音是哪一个？`};
+}
+/* 语文 · 量词 */
+function genQ_liangci(){
+  const item=pick(LIANGCI);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"语文 · 量词选择",q:item.s,hint:"选择正确的量词",
+    options:opts,answer:item.a,say:`选择正确的量词。${item.s.replace("(　)","什么")}`};
+}
+/* 语文 · 反义词 */
+function genQ_fanyici(){
+  const pair=pick(FANYICI);
+  const useFirst=Math.random()<0.5;
+  const ask=useFirst?pair[0]:pair[1],ans=useFirst?pair[1]:pair[0];
+  const opts=[ans];let g=0;
+  while(opts.length<4&&g++<40){const p=pick(FANYICI);const c=Math.random()<0.5?p[0]:p[1];if(!opts.includes(c))opts.push(c);}
+  shuffle(opts);
+  return {kind:"choice",tag:"语文 · 反义词",q:`“ ${ask} ”的反义词是？`,hint:"意思相反的词",
+    options:opts,answer:ans,say:`${ask}，的反义词是什么？`};
+}
+/* 语文 · 句子选字填空 */
+function genQ_juzi(){
+  const item=pick(JUZI);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"语文 · 句子填空",q:item.s,hint:"选择正确的字填入句子",
+    options:opts,answer:item.a,say:`选择正确的字。${item.s.replace("___","，填什么，")}`};
+}
+/* 语文 · 标点符号 */
+function genQ_biaodian(){
+  const item=pick(BIAODIAN);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"语文 · 标点符号",q:item.s,hint:"选择正确的标点符号",
+    options:opts,answer:item.a,say:"选择正确的标点符号。"};
+}
+/* 语文 · 拼音知识 */
+function genQ_pyKnow(){
+  const item=pick(PYKNOW);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"语文 · 拼音知识",q:item.q,hint:"想一想拼音规则",
+    options:opts,answer:item.a,say:item.q};
+}
+/* 数学 · 应用题（键盘输入计算结果） */
+function genQ_wordProb(){
+  const item=pick(WORDPROB);
+  let a,b,c,ans,expr;
+  if(item.op==="+"){a=rnd(11,79);b=rnd(10,99-a);ans=a+b;expr=`${a}+${b}`;}
+  else if(item.op==="-"){a=rnd(21,99);b=rnd(10,a-10);ans=a-b;expr=`${a}-${b}`;}
+  else{a=rnd(31,90);b=rnd(10,a-15);c=rnd(10,99-(a-b));ans=a-b+c;expr=`${a}-${b}+${c}`;}
+  const text=item.t.replace("{a}",a).replace("{b}",b).replace("{c}",c||"");
+  return {kind:"equation",tag:"数学 · 应用题",q:text,
+    hint:"想一想：用加法还是减法？先自己列算式，再写出得数",
+    expr,answer:String(ans),say:text};
+}
+/* 数学 · 比大小 */
+function genQ_compare(){
+  let a=rnd(10,99),b=rnd(10,99);
+  while(a===b)b=rnd(10,99);
+  const ans=a>b?">":a<b?"<":"=";
+  const opts=shuffle([">","<","="]);
+  return {kind:"choice",tag:"数学 · 比大小",q:`${a} ○ ${b}`,hint:"○ 里填 >、< 还是 = ？",
+    options:opts,answer:ans,say:`比较大小。${a}，和，${b}，中间填大于号、小于号，还是等号？`};
+}
+/* 数学 · 认识钟表 */
+function genQ_clock(){
+  const h=rnd(1,12);
+  if(Math.random()<0.5){
+    const ans=`${h} 时`;
+    const opts=new Set([ans]);let g=0;
+    while(opts.size<4&&g++<30)opts.add(`${rnd(1,12)} 时`);
+    return {kind:"choice",tag:"数学 · 认识钟表",q:`时针指向 ${h}，分针指向 12，是几时？`,
+      hint:"分针指 12，时针指几就是几时",options:shuffle([...opts]),answer:ans,
+      say:`时针指向 ${h}，分针指向 12，是几时？`};
+  }
+  const ans=`${h} 时半`;
+  const opts=new Set([ans]);let g=0;
+  while(opts.size<4&&g++<30)opts.add(`${rnd(1,12)} 时半`);
+  return {kind:"choice",tag:"数学 · 认识钟表",q:`时针在 ${h} 和 ${h===12?1:h+1} 中间，分针指向 6，是几时半？`,
+    hint:"时针走过几，就是几时半",options:shuffle([...opts]),answer:ans,
+    say:`时针在 ${h} 和 ${h===12?1:h+1} 中间，分针指向 6，是几时半？`};
+}
+/* 数学 · 找规律 */
+function genQ_rule(){
+  if(Math.random()<0.55){
+    const start=rnd(1,15),step=pick([2,3,5,10]);
+    const seq=[];for(let i=0;i<4;i++)seq.push(start+step*i);
+    const ans=String(start+step*4);
+    const opts=new Set([ans]);let g=0;
+    while(opts.size<4&&g++<40){const c=String(start+step*4+pick([-2,-1,1,2,step]));if(c!==ans)opts.add(c);}
+    return {kind:"choice",tag:"数学 · 找规律",q:`${seq.join("、")}、(　)`,
+      hint:"看看相邻两个数相差几",options:shuffle([...opts]),answer:ans,
+      say:`找规律。${seq.join("，")}，后面一个是几？`};
+  }
+  const pats=[["🔴","🔵"],["⭐","🌙"],["🍎","🍌"],["🔺","⭕"],["🐱","🐶"]];
+  const p=pick(pats);
+  const len=rnd(4,5);
+  const seq=[];for(let i=0;i<len;i++)seq.push(p[i%2]);
+  const ans=p[len%2];
+  const opts=shuffle([p[0],p[1],"🔶","❌"].slice(0,4).concat([ans]).filter((v,i,arr)=>arr.indexOf(v)===i).slice(0,4));
+  if(!opts.includes(ans))opts[0]=ans;
+  return {kind:"choice",tag:"数学 · 找规律",q:`${seq.join(" ")} 下一个是？`,
+    hint:"看看图形是怎么重复的",options:opts,answer:ans,
+    say:"找规律。下一个图形是什么？"};
+}
+/* 数学 · 数的认识 */
+function genQ_numknow(){
+  const makers=[
+    ()=>({q:"最大的两位数是几？",a:"99",opts:["99","90","98","100"]}),
+    ()=>({q:"最小的两位数是几？",a:"10",opts:["10","11","20","100"]}),
+    ()=>({q:"100 里面有几个十？",a:"10 个",opts:["10 个","1 个","100 个","5 个"]}),
+    ()=>{const t=rnd(1,9),o=rnd(1,9);
+      return {q:`${t*10+o} 里面有几个十和几个一？`,a:`${t} 个十和 ${o} 个一`,
+        opts:[`${t} 个十和 ${o} 个一`,`${o} 个十和 ${t} 个一`,`${t} 个十和 ${o===9?o-1:o+1} 个一`,`${t===9?t-1:t+1} 个十和 ${o} 个一`]};},
+    ()=>{const t=rnd(1,9),o=rnd(1,9);
+      return {q:`${t} 个十和 ${o} 个一组成的数是几？`,a:String(t*10+o),
+        opts:[String(t*10+o),String(o*10+t),String(t*10+o+1>99?98:t*10+o+1),String(Math.min(99,(t+1)*10+o))]};},
+    ()=>{const n=rnd(11,98);
+      return {q:`和 ${n} 相邻的两个数是？`,a:`${n-1} 和 ${n+1}`,
+        opts:[`${n-1} 和 ${n+1}`,`${n} 和 ${n+1}`,`${n-2} 和 ${n+2}`,`${n-1} 和 ${n}`]};},
+    ()=>{const n=rnd(11,99);
+      return {q:`${n} 的十位上是几？`,a:String(Math.floor(n/10)),
+        opts:[String(Math.floor(n/10)),String(n%10),String(Math.floor(n/10)+1),String((n%10)+2)]};}
+  ];
+  const m=pick(makers)();
+  const opts=[...new Set(m.opts)];
+  let guard=0;
+  while(opts.length<4&&guard++<60){const c=String(rnd(1,100));if(!opts.includes(c)&&c!==m.a)opts.push(c);}
+  shuffle(opts);
+  return {kind:"choice",tag:"数学 · 数的认识",q:m.q,hint:"想一想数位",options:opts,answer:m.a,say:m.q};
+}
+/* 数学 · 图形与分类 */
+function genQ_shape(){
+  const item=pick(SHAPE_Q);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"数学 · 图形与分类",q:item.q,hint:"仔细观察哦",
+    options:opts,answer:item.a,say:item.q};
+}
+/* 数学 · 人民币 */
+function genQ_rmb(){
+  const item=pick(RMB_Q);
+  const opts=shuffle([...item.opts]);
+  return {kind:"choice",tag:"数学 · 认识人民币",q:item.q,hint:"想一想元、角、分",
+    options:opts,answer:item.a,say:item.q};
+}
+/* 数学 · 位置与顺序 */
+function genQ_pos(){
+  const pool=shuffle([["🐱","小猫"],["🐶","小狗"],["🐰","小兔"],["🐯","小老虎"],["🐵","小猴"],["🐤","小鸡"]]).slice(0,4);
+  const row=pool.map(a=>a[0]).join(" ");
+  if(Math.random()<0.5){
+    const i=rnd(0,3);
+    const dir=Math.random()<0.5?"左":"右";
+    const pos=dir==="左"?i+1:4-i;
+    return {kind:"choice",tag:"数学 · 位置与顺序",q:`${row}　从${dir}边数，${pool[i][1]}排第几？`,
+      hint:"数一数，从左或从右",options:shuffle(["第 1","第 2","第 3","第 4"]),answer:`第 ${pos}`,
+      say:`小动物排队。从${dir}边数，${pool[i][1]}排第几？`};
+  }
+  const i=rnd(1,2),j=Math.random()<0.5?i-1:i+1;
+  const ans=j<i?"左边":"右边";
+  return {kind:"choice",tag:"数学 · 位置与顺序",q:`${row}　${pool[j][1]}在${pool[i][1]}的哪一边？`,
+    hint:"伸出左右手比一比",options:shuffle(["左边","右边","上边","下边"]),answer:ans,
+    say:`小动物排队。${pool[j][1]}在${pool[i][1]}的哪一边？`};
+}
+/* ==================== PDF知识全覆盖：古诗/日积月累/多音字/形近字/偏旁/课文/数学专项 ==================== */
+/* --- 必背古诗（上下册全） --- */
+const POEMS=[
+{t:"咏鹅",a:"骆宾王",lines:["鹅，鹅，鹅","曲项向天歌","白毛浮绿水","红掌拨清波"]},
+{t:"画",a:"佚名",lines:["远看山有色","近听水无声","春去花还在","人来鸟不惊"]},
+{t:"悯农（其二）",a:"李绅",lines:["锄禾日当午","汗滴禾下土","谁知盘中餐","粒粒皆辛苦"]},
+{t:"古朗月行",a:"李白",lines:["小时不识月","呼作白玉盘","又疑瑶台镜","飞在青云端"]},
+{t:"风",a:"李峤",lines:["解落三秋叶","能开二月花","过江千尺浪","入竹万竿斜"]},
+{t:"江南",a:"汉乐府",lines:["江南可采莲","莲叶何田田","鱼戏莲叶间","鱼戏莲叶东","鱼戏莲叶西","鱼戏莲叶南","鱼戏莲叶北"]},
+{t:"金木水火土",a:"佚名",lines:["一二三四五","金木水火土","天地分上下","日月照今古"]},
+{t:"小小的船",a:"叶圣陶",lines:["弯弯的月儿小小的船","小小的船儿两头尖","我在小小的船里坐","只看见闪闪的星星蓝蓝的天"]},
+{t:"春晓",a:"孟浩然",lines:["春眠不觉晓","处处闻啼鸟","夜来风雨声","花落知多少"]},
+{t:"寻隐者不遇",a:"贾岛",lines:["松下问童子","言师采药去","只在此山中","云深不知处"]},
+{t:"赠汪伦",a:"李白",lines:["李白乘舟将欲行","忽闻岸上踏歌声","桃花潭水深千尺","不及汪伦送我情"]},
+{t:"静夜思",a:"李白",lines:["床前明月光","疑是地上霜","举头望明月","低头思故乡"]},
+{t:"池上",a:"白居易",lines:["小娃撑小艇","偷采白莲回","不解藏踪迹","浮萍一道开"]},
+{t:"小池",a:"杨万里",lines:["泉眼无声惜细流","树阴照水爱晴柔","小荷才露尖尖角","早有蜻蜓立上头"]},
+{t:"画鸡",a:"唐寅",lines:["头上红冠不用裁","满身雪白走将来","平生不敢轻言语","一叫千门万户开"]},
+{t:"人之初",a:"佚名",lines:["人之初，性本善","性相近，习相远","苟不教，性乃迁","教之道，贵以专"]}
+];
+const POEM_AUTHORS=["李白","孟浩然","白居易","杨万里","李绅","骆宾王","贾岛","李峤","唐寅","汉乐府","叶圣陶","佚名"];
+/* --- 日积月累：谚语名言 --- */
+const YANYU=[
+["一年之计在于春","一日之计在于晨"],["一寸光阴一寸金","寸金难买寸光阴"],
+["种瓜得瓜","种豆得豆"],["前人栽树","后人乘凉"],["千里之行","始于足下"],
+["百尺竿头","更进一步"],["朝霞不出门","晚霞行千里"],["有雨山戴帽","无雨半山腰"],
+["蚂蚁搬家蛇过道","大雨不久要来到"],["一日无书","百事荒芜"],
+["读万卷书","行万里路"],["不知则问","不能则学"]
+];
+/* --- 歇后语 --- */
+const XIEHOUYU=[
+["小葱拌豆腐","一清（青）二白"],["竹篮子打水","一场空"],
+["芝麻开花","节节高"],["十五个吊桶打水","七上八下"]
+];
+/* --- 对子（对韵歌/对子歌） --- */
+const DUILIAN=[
+{q:"云对雨，雪对（　）",a:"风",opts:["风","雨","云","雷"]},
+{q:"花对树，鸟对（　）",a:"虫",opts:["虫","鱼","马","鸟"]},
+{q:"山清对水秀，柳绿对（　）",a:"桃红",opts:["桃红","草绿","花红","水清"]},
+{q:"古对今，圆对（　）",a:"方",opts:["方","圆","大","小"]},
+{q:"晨对暮，雪对（　）",a:"霜",opts:["霜","雨","风","雪"]},
+{q:"桃对李，柳对（　）",a:"杨",opts:["杨","松","柏","梅"]},
+{q:"和风对细雨，朝霞对（　）",a:"夕阳",opts:["夕阳","晨光","晚霞","落日"]},
+{q:"严寒对酷暑，春暖对（　）",a:"秋凉",opts:["秋凉","夏热","冬冷","春寒"]}
+];
+/* --- 多音字 --- */
+const DUOYIN=[
+{zi:"长",w:"长大",a:"zhǎng",opts:["zhǎng","cháng","zhàng","chǎng"]},
+{zi:"长",w:"长短",a:"cháng",opts:["cháng","zhǎng","chǎng","zhàng"]},
+{zi:"地",w:"土地",a:"dì",opts:["dì","de","dí","tì"]},
+{zi:"着",w:"着急",a:"zháo",opts:["zháo","zhe","zhuó","zhāo"]},
+{zi:"数",w:"数一数",a:"shǔ",opts:["shǔ","shù","shuò","sù"]},
+{zi:"数",w:"数学",a:"shù",opts:["shù","shǔ","sù","shuò"]},
+{zi:"少",w:"多少",a:"shǎo",opts:["shǎo","shào","sǎo","xiǎo"]},
+{zi:"没",w:"没有",a:"méi",opts:["méi","mò","měi","mā"]},
+{zi:"只",w:"一只",a:"zhī",opts:["zhī","zhǐ","zī","zhí"]},
+{zi:"乐",w:"音乐",a:"yuè",opts:["yuè","lè","yào","luò"]},
+{zi:"乐",w:"快乐",a:"lè",opts:["lè","yuè","luò","lì"]},
+{zi:"间",w:"中间",a:"jiān",opts:["jiān","jiàn","jiǎn","jián"]},
+{zi:"教",w:"教书",a:"jiāo",opts:["jiāo","jiào","jiǎo","jiáo"]},
+{zi:"朝",w:"朝阳",a:"zhāo",opts:["zhāo","cháo","zhǎo","chāo"]},
+{zi:"空",w:"天空",a:"kōng",opts:["kōng","kòng","kǒng","gōng"]},
+{zi:"背",w:"背包",a:"bēi",opts:["bēi","bèi","běi","pēi"]}
+];
+/* --- 形近字选字组词 --- */
+const XINGJIN=[
+{q:"（　）天",a:"晴",opts:["晴","睛","清","请"]},
+{q:"眼（　）",a:"睛",opts:["睛","晴","清","请"]},
+{q:"（　）水",a:"清",opts:["清","晴","睛","请"]},
+{q:"（　）问",a:"请",opts:["请","清","晴","睛"]},
+{q:"（　）们",a:"人",opts:["人","入","八","大"]},
+{q:"（　）口",a:"入",opts:["入","人","八","大"]},
+{q:"（　）米",a:"玉",opts:["玉","王","主","土"]},
+{q:"（　）水",a:"井",opts:["井","开","干","土"]},
+{q:"（　）厂",a:"工",opts:["工","广","人","大"]},
+{q:"（　）阳",a:"太",opts:["太","大","天","夫"]},
+{q:"小（　）",a:"河",opts:["河","何","可","哥"]},
+{q:"（　）乐",a:"快",opts:["快","块","决","扶"]},
+{q:"（　）头",a:"低",opts:["低","底","纸","红"]},
+{q:"中（　）",a:"午",opts:["午","牛","干","土"]},
+{q:"（　）花",a:"采",opts:["采","彩","菜","踩"]},
+{q:"（　）色",a:"白",opts:["白","百","日","自"]},
+{q:"（　）下",a:"坐",opts:["坐","座","作","做"]},
+{q:"一（　）树",a:"棵",opts:["棵","课","颗","个"]},
+{q:"西（　）",a:"瓜",opts:["瓜","爪","牙","才"]},
+{q:"（　）来",a:"本",opts:["本","木","术","禾"]}
+];
+/* --- 偏旁部首 --- */
+const PIANPANG=[
+{q:"“江”的偏旁是？",a:"三点水",opts:["三点水","木字旁","草字头","口字旁"]},
+{q:"“花”的偏旁是？",a:"草字头",opts:["草字头","三点水","女字旁","日字旁"]},
+{q:"“妈”的偏旁是？",a:"女字旁",opts:["女字旁","马字旁","三点水","提手旁"]},
+{q:"“明”的偏旁是？",a:"日字旁",opts:["日字旁","月字旁","目字旁","口字旁"]},
+{q:"“狗”的偏旁是？",a:"反犬旁",opts:["反犬旁","句字旁","提手旁","口字旁"]},
+{q:"“红”的偏旁是？",a:"绞丝旁",opts:["绞丝旁","工字旁","女字旁","火字旁"]},
+{q:"“把”的偏旁是？",a:"提手旁",opts:["提手旁","口字旁","木字旁","反犬旁"]},
+{q:"“说”的偏旁是？",a:"言字旁",opts:["言字旁","口字旁","日字旁","耳字旁"]},
+{q:"“笔”的偏旁是？",a:"竹字头",opts:["竹字头","草字头","宝盖头","毛字旁"]},
+{q:"“国”的偏旁是？",a:"国字框",opts:["国字框","门字框","口字旁","王字旁"]},
+{q:"木字旁的字大多和什么有关？",a:"树木",opts:["树木","水","时间","女性"]},
+{q:"草字头的字大多和什么有关？",a:"植物",opts:["植物","动物","天气","数字"]},
+{q:"女字旁的字大多和什么有关？",a:"女性",opts:["女性","男性","树木","食物"]},
+{q:"日字旁的字大多和什么有关？",a:"时间",opts:["时间","树木","动物","水果"]}
+];
+/* --- 加一笔 / 合字变新字 --- */
+const ZIBIAN=[
+{q:"“口”加一笔可以变成？",a:"日",opts:["日","目","白","田"]},
+{q:"“大”加一笔可以变成？",a:"太",opts:["太","木","小","人"]},
+{q:"“木”加一笔可以变成？",a:"禾",opts:["禾","大","个","林"]},
+{q:"“日”加一笔可以变成？",a:"目",opts:["目","口","石","大"]},
+{q:"“日”和“月”合起来是什么字？",a:"明",opts:["明","早","音","星"]},
+{q:"“木”和“木”合起来是什么字？",a:"林",opts:["林","森","本","禾"]},
+{q:"“女”和“子”合起来是什么字？",a:"好",opts:["好","妈","姐","妹"]},
+{q:"“口”和“马”合起来是什么字？",a:"吗",opts:["吗","妈","骂","码"]},
+{q:"“小”和“土”合起来是什么字？",a:"尘",opts:["尘","尖","少","寺"]},
+{q:"“田”和“力”合起来是什么字？",a:"男",opts:["男","累","奋","苗"]},
+{q:"“人”和“人”合起来是什么字？",a:"从",opts:["从","众","个","大"]},
+{q:"“禾”和“日”合起来是什么字？",a:"香",opts:["香","早","明","秋"]},
+{q:"“日”和“十”合起来是什么字？",a:"早",opts:["早","田","由","甲"]},
+{q:"“又”和“鸟”合起来是什么字？",a:"鸡",opts:["鸡","鸭","鹅","鸦"]}
+];
+/* --- 词语搭配 --- */
+const DAPEI=[
+{q:"弯弯的（　）",a:"月儿",opts:["月儿","皮球","尺子","小手"]},
+{q:"闪闪的（　）",a:"星星",opts:["星星","太阳","花朵","小草"]},
+{q:"蓝蓝的（　）",a:"天空",opts:["天空","草地","红花","月亮"]},
+{q:"青青的（　）",a:"小草",opts:["小草","太阳","雪花","星星"]},
+{q:"红红的（　）",a:"太阳",opts:["太阳","小草","白云","雪花"]},
+{q:"雪白的（　）",a:"棉花",opts:["棉花","泥土","太阳","小草"]},
+{q:"亮晶晶的（　）",a:"眼睛",opts:["眼睛","泥巴","书本","桌子"]},
+{q:"圆圆的（　）",a:"荷叶",opts:["荷叶","尺子","铅笔","小河"]},
+{q:"遥远的（　）",a:"北京",opts:["北京","书包","铅笔","课桌"]},
+{q:"雄伟的（　）",a:"天安门",opts:["天安门","小蚂蚁","铅笔盒","小书包"]},
+{q:"洁白的（　）",a:"雪花",opts:["雪花","泥巴","黑板","墨水"]},
+{q:"淘气的（　）",a:"小娃娃",opts:["小娃娃","大石头","老树","高山"]},
+{q:"宽宽的（　）",a:"公路",opts:["公路","小路","头发","眉毛"]},
+{q:"白白的（　）",a:"糯米",opts:["糯米","煤炭","头发","黑板"]}
+];
+/* --- 成语与春天词语 --- */
+const CHENGYU=[
+{q:"把成语补充完整：（　）心（　）意",a:"一、一",opts:["一、一","二、二","三、四","七、八"]},
+{q:"把成语补充完整：十全（　）美",a:"十",opts:["十","五","三","百"]},
+{q:"下面哪个是描写春天的词语？",a:"百花齐放",opts:["百花齐放","大雪纷飞","冰天雪地","寒风刺骨"]},
+{q:"下面哪个是描写春天的词语？",a:"鸟语花香",opts:["鸟语花香","雪花飘飘","北风呼呼","滴水成冰"]},
+{q:"下面哪个是描写春天的词语？",a:"万物复苏",opts:["万物复苏","天寒地冻","白雪皑皑","寒风凛冽"]},
+{q:"“五颜六色”这个词里面有几个数字？",a:"两个",opts:["两个","一个","三个","没有"]}
+];
+/* --- 课文内容填空 --- */
+const KEWEN=[
+{q:"《雪地里的小画家》：小鸡画（　），小狗画梅花。",a:"竹叶",opts:["竹叶","梅花","枫叶","月牙"]},
+{q:"《雪地里的小画家》：小鸭画（　），小马画月牙。",a:"枫叶",opts:["枫叶","竹叶","梅花","月牙"]},
+{q:"《雪地里的小画家》：小画家们不用颜料不用（　）。",a:"笔",opts:["笔","纸","手","脚"]},
+{q:"《比尾巴》：猴子的尾巴（　）。",a:"长",opts:["长","短","弯","扁"]},
+{q:"《比尾巴》：兔子的尾巴（　）。",a:"短",opts:["短","长","弯","扁"]},
+{q:"《比尾巴》：松鼠的尾巴好像（　）。",a:"一把伞",opts:["一把伞","一把刀","一根绳","一面旗"]},
+{q:"《比尾巴》：孔雀的尾巴最（　）。",a:"好看",opts:["好看","难看","长","扁"]},
+{q:"春风吹，夏雨（　），秋霜降，冬雪飘。",a:"落",opts:["落","吹","降","飘"]},
+{q:"《荷叶圆圆》：荷叶是小水珠的（　）。",a:"摇篮",opts:["摇篮","歌台","停机坪","凉伞"]},
+{q:"《荷叶圆圆》：荷叶是小青蛙的（　）。",a:"歌台",opts:["歌台","摇篮","停机坪","凉伞"]},
+{q:"《荷叶圆圆》：荷叶是小蜻蜓的（　）。",a:"停机坪",opts:["停机坪","摇篮","歌台","凉伞"]},
+{q:"燕子在（　）捉害虫。",a:"空中",opts:["空中","树干里","田里","水里"]},
+{q:"啄木鸟在（　）捉害虫。",a:"树干里",opts:["树干里","空中","田里","水里"]},
+{q:"青蛙在（　）捉害虫。",a:"田里",opts:["田里","空中","树干里","水里"]},
+{q:"五星红旗，我们的（　）。",a:"国旗",opts:["国旗","国徽","国歌","国家"]},
+{q:"《两件宝》：人有两件宝，双手和（　）。",a:"大脑",opts:["大脑","眼睛","耳朵","双脚"]}
+];
+/* --- 数学专项（PDF覆盖） --- */
+const QIQIAOBAN=[
+{q:"一副七巧板一共有几块？",a:"7 块",opts:["7 块","5 块","6 块","8 块"]},
+{q:"七巧板里有几个三角形？",a:"5 个",opts:["5 个","3 个","4 个","7 个"]},
+{q:"两个完全一样的三角形可以拼成什么图形？",a:"平行四边形",opts:["平行四边形","圆形","正方体","球"]},
+{q:"一个正方体有几个面？",a:"6 个",opts:["6 个","4 个","5 个","8 个"]}
+];
+const SHUFAA=[
+{q:"计算 15-9，可以想：9 +（　）= 15",a:"6",opts:["6","5","7","8"]},
+{q:"计算 13-8，可以想：8 +（　）= 13",a:"5",opts:["5","4","6","7"]},
+{q:"“十几减 9”的得数等于几加（　）？",a:"1",opts:["1","2","3","10"]},
+{q:"笔算加法时，个位相加满十，要向（　）位进 1",a:"十",opts:["十","百","个","千"]},
+{q:"笔算减法时，个位不够减，要从（　）位退 1 当 10",a:"十",opts:["十","百","个","千"]}
+];
+
+/* ==================== 生成器 ==================== */
+function mkChoice(tag,item,hint,say){
+  return {kind:"choice",tag,q:item.q,hint:hint||"动动脑筋想一想",options:shuffle([...item.opts]),answer:item.a,say:say||item.q};
+}
+/* 古诗（接下句/作者/填字） */
+function genQ_poem(){
+  const type=rnd(0,2),p=pick(POEMS);
+  if(type===0){
+    const i=rnd(0,p.lines.length-2);
+    const ans=p.lines[i+1];
+    const opts=[ans];let g=0;
+    while(opts.length<4&&g++<60){const l=pick(pick(POEMS).lines);if(!opts.includes(l))opts.push(l);}
+    return {kind:"choice",tag:"语文 · 古诗接龙",q:`《${p.t}》“${p.lines[i]}”的下一句是？`,hint:"大声背一背这首诗",
+      options:shuffle(opts),answer:ans,say:`古诗，${p.t}。${p.lines[i]}，的下一句是什么？`};
+  }
+  if(type===1){
+    const opts=[p.a];let g=0;
+    while(opts.length<4&&g++<40){const c=pick(POEM_AUTHORS);if(!opts.includes(c))opts.push(c);}
+    return {kind:"choice",tag:"语文 · 古诗作者",q:`《${p.t}》的作者是？`,hint:"背一背这首诗就想起来啦",
+      options:shuffle(opts),answer:p.a,say:`古诗${p.t}，的作者是谁？`};
+  }
+  const i=rnd(0,p.lines.length-1),line=p.lines[i],ch=line[line.length-1];
+  const opts=[ch];let g=0;
+  while(opts.length<4&&g++<80){const l=pick(pick(POEMS).lines);const c=l[l.length-1];if(!opts.includes(c))opts.push(c);}
+  return {kind:"choice",tag:"语文 · 古诗填字",q:`《${p.t}》“${line.slice(0,-1)}（　）”`,hint:"填入最后一个字",
+    options:shuffle(opts),answer:ch,say:`古诗${p.t}，填上最后一个字。`};
+}
+function genQ_duoyin(){
+  const item=pick(DUOYIN);
+  return {kind:"choice",tag:"语文 · 多音字",q:`“${item.w}”中的“${item.zi}”读什么？`,hint:"想一想词语的意思",
+    options:shuffle([...item.opts]),answer:item.a,say:`多音字。${item.w}，的${item.zi}，读什么？`};
+}
+function genQ_xingjin(){return mkChoice("语文 · 形近字",pick(XINGJIN),"仔细看字形，别认错啦");}
+function genQ_pianpang(){return mkChoice("语文 · 偏旁部首",pick(PIANPANG),"想一想这个字的结构");}
+function genQ_zibian(){return mkChoice("语文 · 汉字变身",pick(ZIBIAN),"加一笔或拼一拼");}
+function genQ_dapei(){return mkChoice("语文 · 词语搭配",pick(DAPEI),"读一读，哪个最顺口");}
+function genQ_chengyu(){return mkChoice("语文 · 成语积累",pick(CHENGYU),"日积月累里的知识");}
+function genQ_kewen(){return mkChoice("语文 · 课文填空",pick(KEWEN),"回忆一下课文内容");}
+function genQ_duilian(){return mkChoice("语文 · 对子歌",pick(DUILIAN),"对子要字数相同、意思相对");}
+function genQ_xiehouyu(){
+  const item=pick(XIEHOUYU);
+  const opts=[item[1]];let g=0;
+  while(opts.length<4&&g++<300){const c=pick(XIEHOUYU)[1];if(!opts.includes(c))opts.push(c);}
+  return {kind:"choice",tag:"语文 · 歇后语",q:`${item[0]}——（　）`,hint:"日积月累里的歇后语",
+    options:shuffle(opts),answer:item[1],say:`歇后语。${item[0]}，后半句是什么？`};
+}
+function genQ_yanyu(){
+  const item=pick(YANYU);
+  const useFirst=Math.random()<0.5;
+  const ask=useFirst?item[0]:item[1],ans=useFirst?item[1]:item[0];
+  const opts=[ans];let g=0;
+  while(opts.length<4&&g++<30){const p=pick(YANYU);const c=Math.random()<0.5?p[0]:p[1];if(!opts.includes(c))opts.push(c);}
+  return {kind:"choice",tag:"语文 · 日积月累",q:`“${ask}”的${useFirst?"下一句":"上一句"}是？`,hint:"这些都是珍惜时间、热爱学习的句子",
+    options:shuffle(opts),answer:ans,say:`日积月累。${ask}，的${useFirst?"下一句":"上一句"}是什么？`};
+}
+/* 数学专项 */
+function genQ_tens(){
+  const t=rnd(0,2);
+  if(t===0){
+    const a=rnd(1,8)*10,b=rnd(1,9-a/10)*10;
+    return {kind:"input",tag:"数学 · 整十数加法",q:`${a} + ${b} = ?`,hint:"想：几个十加几个十",
+      answer:String(a+b),inputMode:"numeric",ph:"输入数字",say:`${a}，加，${b}，等于几？`};
+  }
+  if(t===1){
+    const a=rnd(2,9)*10,b=rnd(1,a/10-1)*10;
+    return {kind:"input",tag:"数学 · 整十数减法",q:`${a} - ${b} = ?`,hint:"想：几个十减几个十",
+      answer:String(a-b),inputMode:"numeric",ph:"输入数字",say:`${a}，减，${b}，等于几？`};
+  }
+  const t2=rnd(1,9),o=rnd(1,9);
+  if(Math.random()<0.5)return {kind:"input",tag:"数学 · 几十加几",q:`${t2*10} + ${o} = ?`,hint:"几十加几等于几十几",
+    answer:String(t2*10+o),inputMode:"numeric",ph:"输入数字",say:`${t2*10}，加，${o}，等于几？`};
+  return {kind:"input",tag:"数学 · 几十几减几",q:`${t2*10+o} - ${o} = ?`,hint:"几十几减几等于几十",
+    answer:String(t2*10),inputMode:"numeric",ph:"输入数字",say:`${t2*10+o}，减，${o}，等于几？`};
+}
+function genQ_qkb(){return mkChoice("数学 · 图形拼组",pick(QIQIAOBAN),"回忆图形课的知识");}
+function genQ_shufa(){return mkChoice("数学 · 计算方法",pick(SHUFAA),"想一想计算小窍门");}
+function genQ_baishu(){
+  const t=rnd(0,1);
+  if(t===0){
+    const n=rnd(1,8)*10+rnd(1,9);
+    const ans=String(n+10);
+    const opts=new Set([ans]);let g=0;
+    while(opts.size<4&&g++<40){const c=String(n+pick([-10,-1,1,10])+pick([0,10]));if(c!==ans&&+c>0&&+c<=100)opts.add(c);}
+    while(opts.size<4)opts.add(String(rnd(11,99)));
+    return {kind:"choice",tag:"数学 · 百数表",q:`百数表中，${n} 正下面的数是？`,hint:"竖着看，上下两个数相差 10",
+      options:shuffle([...opts]),answer:ans,say:`百数表中，${n}，正下面的数是几？`};
+  }
+  const n=rnd(2,8)*10;
+  const ans=`${n-10} 和 ${n+10}`;
+  const opts=shuffle([ans,`${n-1} 和 ${n+1}`,`${n} 和 ${n+10}`,`${n-20} 和 ${n+20}`]);
+  return {kind:"choice",tag:"数学 · 百数表",q:`和整十数 ${n} 相邻的两个整十数是？`,hint:"整十数就是 10、20、30……",
+    options:opts,answer:ans,say:`和 ${n} 相邻的两个整十数是多少？`};
+}
+function genQ_dayixie(){
+  const items=[
+    {q:"25 比 31（　）",a:"小一些",opts:["小一些","小得多","大一些","大得多"]},
+    {q:"99 比 31（　）",a:"大得多",opts:["大得多","大一些","小一些","差不多"]},
+    {q:"52 比 48（　）",a:"大一些",opts:["大一些","大得多","小一些","小得多"]},
+    {q:"18 比 89（　）",a:"小得多",opts:["小得多","小一些","大一些","大得多"]}
+  ];
+  return mkChoice("数学 · 数的大小",pick(items),"相差少用“一些”，相差多用“得多”");
+}
+/* ==================== 界面切换 ==================== */
+function show(id){
+  $$(".screen").forEach(s=>s.classList.add("hidden"));
+  $(id).classList.remove("hidden");
+  updateHUD();
+}
+function updateHUD(){
+  const t=getTitle();
+  $("#homeCoins").textContent=save.coins;
+  $("#mapCoins").textContent=save.coins;
+  $("#shopCoins").textContent=save.coins;
+  $("#homeTitle").textContent=t.icon+" "+t.name;
+  $("#mapTitle").textContent=t.icon+" "+t.name;
+}
+
+/* ==================== 商城数据 ==================== */
+const SHOP={
+  skin:[
+    {id:"skin_green",name:"经典绿",price:0,c1:"#7ec850",c2:"#4caf50"},
+    {id:"skin_lime",name:"青柠苏打",price:80,c1:"#d4e157",c2:"#9e9d24"},
+    {id:"skin_red",name:"火焰红",price:100,c1:"#ff8a65",c2:"#e53935"},
+    {id:"skin_pink",name:"草莓甜心",price:120,c1:"#f48fb1",c2:"#e91e63"},
+    {id:"skin_orange",name:"活力橙",price:120,c1:"#ffb74d",c2:"#f57c00"},
+    {id:"skin_blue",name:"海洋蓝",price:150,c1:"#4fc3f7",c2:"#1e88e5"},
+    {id:"skin_cyan",name:"冰晶青",price:180,c1:"#80deea",c2:"#00838f"},
+    {id:"skin_purple",name:"星空紫",price:300,c1:"#ba68c8",c2:"#6a1b9a"},
+    {id:"skin_watermelon",name:"西瓜太郎",price:300,c1:"#81c784",c2:"#c62828"},
+    {id:"skin_candy",name:"糖果旋风",price:350,c1:"#f8bbd0",c2:"#7b1fa2"},
+    {id:"skin_rainbow",name:"七彩霓虹",price:400,c1:"rainbow",c2:"rainbow"},
+    {id:"skin_panda",name:"熊猫滚滚",price:400,c1:"#fafafa",c2:"#212121"},
+    {id:"skin_night",name:"暗夜星芒",price:450,c1:"#7986cb",c2:"#1a237e"},
+    {id:"skin_gold",name:"黄金战甲",price:500,c1:"#ffe082",c2:"#ffb300"},
+    {id:"skin_tiger",name:"虎纹勇士",price:500,c1:"#ffb74d",c2:"#e65100",c3:"#4e2600",alt:true},
+    {id:"skin_dragon",name:"青龙出海",price:600,c1:"#4dd0e1",c2:"#00695c"},
+    {id:"skin_lava",name:"熔岩之王",price:550,c1:"#ff7043",c2:"#3e1200"},
+    {id:"skin_golddragon",name:"金龙天子",price:800,c1:"#ffd54f",c2:"#b26a00"},
+    {id:"skin_emerald",name:"翡翠森林",price:450,c1:"#a5d6a7",c2:"#1b5e20"},
+    {id:"skin_ice",name:"冰雪奇缘",price:500,c1:"#b3e5fc",c2:"#0277bd"},
+    {id:"skin_lemon",name:"柠檬阳光",price:350,c1:"#fff176",c2:"#f9a825"},
+    {id:"skin_blueberry",name:"蓝莓之夜",price:400,c1:"#9fa8da",c2:"#283593"},
+    {id:"skin_choco",name:"巧克力可可",price:380,c1:"#bcaaa4",c2:"#3e2723"},
+    {id:"skin_galaxy",name:"银河漫游",price:650,c1:"#ce93d8",c2:"#311b92"},
+    {id:"skin_phoenix",name:"凤凰展翅",price:700,c1:"#ffab91",c2:"#bf360c"},
+    {id:"skin_unicorn",name:"独角兽梦幻",price:750,c1:"#f8bbd0",c2:"#8e24aa"},
+    {id:"skin_zebra",name:"斑马条纹",price:420,c1:"#fafafa",c2:"#616161",c3:"#212121",alt:true},
+    {id:"skin_bee",name:"勤劳小蜜蜂",price:380,c1:"#ffeb3b",c2:"#f57f17",c3:"#212121",alt:true},
+    {id:"skin_caterpillar",name:"毛毛虫",price:260,c1:"#aed581",c2:"#558b2f",c3:"#c5e1a5",alt:true}
+  ],
+  hat:[
+    {id:"hat_none",name:"不戴帽子",price:0,icon:"🚫"},
+    {id:"hat_straw",name:"小草帽",price:70,icon:"👒"},
+    {id:"hat_bow",name:"蝴蝶结",price:80,icon:"🎀"},
+    {id:"hat_cap",name:"棒球帽",price:90,icon:"🧢"},
+    {id:"hat_flower",name:"小花环",price:100,icon:"🌸"},
+    {id:"hat_star",name:"星星发箍",price:110,icon:"⭐"},
+    {id:"hat_cowboy",name:"牛仔帽",price:120,icon:"🤠"},
+    {id:"hat_magic",name:"魔术帽",price:130,icon:"🎩"},
+    {id:"hat_rabbit",name:"兔耳朵",price:140,icon:"🐰"},
+    {id:"hat_grad",name:"学士帽",price:150,icon:"🎓"},
+    {id:"hat_pumpkin",name:"南瓜帽",price:160,icon:"🎃"},
+    {id:"hat_crown",name:"皇冠",price:200,icon:"👑"},
+    {id:"hat_unicorn",name:"独角兽",price:260,icon:"🦄"},
+    {id:"hat_dragon",name:"小龙角",price:300,icon:"🐲"},
+    {id:"hat_flower2",name:"花环公主",price:150,icon:"🌺"},
+    {id:"hat_angel",name:"天使光环",price:280,icon:"😇"},
+    {id:"hat_sunflower",name:"太阳花",price:130,icon:"🌻"},
+    {id:"hat_rainbowband",name:"彩虹发箍",price:220,icon:"🌈"},
+    {id:"hat_diamond",name:"钻石王冠",price:600,icon:"💎"},
+    {id:"hat_clover",name:"幸运四叶草",price:180,icon:"🍀"}
+  ],
+  title:[
+    {id:"title_1",name:"小学童",price:0,icon:"🎒"},
+    {id:"title_2",name:"识字小达人",price:100,icon:"📖"},
+    {id:"title_3",name:"口算小能手",price:100,icon:"🧮"},
+    {id:"title_4",name:"拼音小高手",price:150,icon:"🔤"},
+    {id:"title_5",name:"阅读之星",price:150,icon:"📚"},
+    {id:"title_6",name:"书写小能手",price:150,icon:"✍️"},
+    {id:"title_7",name:"应用题小达人",price:200,icon:"📝"},
+    {id:"title_8",name:"智慧小达人",price:250,icon:"🧠"},
+    {id:"title_9",name:"学习小博士",price:300,icon:"🎓"},
+    {id:"title_10",name:"全能小冠军",price:400,icon:"🏅"},
+    {id:"title_11",name:"超级学霸",price:500,icon:"🏆"},
+    {id:"title_12",name:"学神降临",price:800,icon:"👑"},
+    {id:"title_13",name:"无敌小学神",price:1000,icon:"🚀"},
+    {id:"title_14",name:"诗词小达人",price:250,icon:"📜"},
+    {id:"title_15",name:"背诵小明星",price:200,icon:"🎵"},
+    {id:"title_16",name:"汉字小书法家",price:300,icon:"🖌️"},
+    {id:"title_17",name:"计算小天才",price:300,icon:"💡"},
+    {id:"title_18",name:"阳光小学霸",price:600,icon:"🌞"}
+  ]
+};
+function getTitle(){return SHOP.title.find(t=>t.id===save.equip.title)||SHOP.title[0];}
+function getSkin(){return SHOP.skin.find(s=>s.id===save.equip.skin)||SHOP.skin[0];}
+function getHat(){return SHOP.hat.find(h=>h.id===save.equip.hat)||SHOP.hat[0];}
+
+let curTab="skin";
+function renderShop(){
+  $$(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===curTab));
+  const grid=$("#shopGrid");grid.innerHTML="";
+  SHOP[curTab].forEach(item=>{
+    const owned=save.owned.includes(item.id);
+    const equipped=save.equip[curTab]===item.id;
+    const div=document.createElement("div");
+    div.className="shop-item"+(equipped?" equipped":"");
+    let iconHtml;
+    if(curTab==="skin"){
+      const bg=item.c1==="rainbow"?"linear-gradient(135deg,#ff5e62,#f7b733,#56ab2f,#36d1dc,#7f53ac)":`linear-gradient(135deg,${item.c1},${item.c2})`;
+      iconHtml=`<div class="skin-dot" style="background:${bg}"></div>`;
+    }else iconHtml=item.icon;
+    let btnHtml;
+    if(equipped)btnHtml=`<button class="btn btn-green" disabled>✅ 已装备</button>`;
+    else if(owned)btnHtml=`<button class="btn btn-purple" onclick="equipItem('${item.id}')">装备</button>`;
+    else btnHtml=`<button class="btn btn-shop" onclick="buyItem('${item.id}',${item.price})">🪙 ${item.price} 购买</button>`;
+    div.innerHTML=`<div class="shop-icon">${iconHtml}</div><div class="shop-name">${item.name}</div>${btnHtml}`;
+    grid.appendChild(div);
+  });
+  updateHUD();
+}
+window.buyItem=function(id,price){
+  if(save.coins<price){Sound.wrong();alert("金币不够哦，快去闯关答题赚金币吧！");return;}
+  save.coins-=price;save.owned.push(id);save.equip[curTab]=id;
+  persist();Sound.buy();confetti(60);renderShop();
+};
+window.equipItem=function(id){save.equip[curTab]=id;persist();Sound.click();renderShop();};
+$$(".tab-btn").forEach(b=>b.addEventListener("click",()=>{curTab=b.dataset.tab;Sound.click();renderShop();}));
+
+/* ==================== 蛇速调节 ==================== */
+function renderSpeedBtns(){$$(".speed-btn").forEach(b=>b.classList.toggle("active",b.dataset.sp===(save.speed||"normal")));}
+$$(".speed-btn").forEach(b=>b.addEventListener("click",()=>{
+  save.speed=b.dataset.sp;persist();Sound.click();renderSpeedBtns();
+}));
+renderSpeedBtns();
+
+/* ==================== 存档备份：导出 / 导入 ==================== */
+$("#btnBackup").addEventListener("click",()=>{
+  Sound.click();
+  try{
+    const data=JSON.stringify({...save,backupTime:new Date().toLocaleString("zh-CN")},null,2);
+    const blob=new Blob([data],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="贪吃蛇学习大冒险_存档备份.json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    Sound.speak("存档备份成功！");
+  }catch(e){alert("导出失败，请换个浏览器试试。");}
+});
+$("#btnImport").addEventListener("click",()=>{Sound.click();$("#importFile").click();});
+$("#importFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result);
+      if(typeof d.coins!=="number"||typeof d.unlocked!=="number"||!d.equip)throw new Error("bad");
+      save={
+        coins:Math.max(0,d.coins|0),
+        unlocked:Math.min(30,Math.max(1,d.unlocked|0)),
+        stars:d.stars||{},
+        owned:Array.isArray(d.owned)?d.owned:["skin_green","hat_none","title_1"],
+        equip:d.equip,
+        sound:d.sound!==false,
+        speed:d.speed||"normal"
+      };
+      persist();updateHUD();renderSpeedBtns();
+      $("#soundBtn").textContent=save.sound?"🔊":"🔇";
+      confetti(80);Sound.speak("存档导入成功！欢迎回来！");
+      alert("🎉 存档导入成功！金币、关卡和装扮都回来啦！");
+    }catch(err){alert("😅 这个文件不对哦，请选择本游戏导出的存档备份文件。");}
+  };
+  reader.readAsText(f);
+  e.target.value="";
+});
+
+/* ==================== 自动读题开关（默认关闭，点喇叭读题） ==================== */
+function renderAutoreadBtn(){
+  $("#btnAutoread").textContent=save.autoread?"🔊 自动读题：开":"🔇 自动读题：关";
+}
+$("#btnAutoread").addEventListener("click",()=>{
+  save.autoread=!save.autoread;persist();Sound.click();renderAutoreadBtn();
+  if(save.autoread)Sound.speak("自动读题已开启");
+});
+renderAutoreadBtn();
+
+/* ==================== 地图（30关，蛇形路径） ==================== */
+const LEVEL_TAGS=["新手试炼","新手试炼","新手试炼","新手试炼","新手试炼","新手试炼","新手试炼","新手试炼","新手试炼","新手试炼",
+"进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战","进阶挑战",
+"高手对决","高手对决","高手对决","高手对决","高手对决","高手对决","高手对决","高手对决","高手对决","期末大魔王"];
+function renderMap(){
+  const inner=$("#mapInner");const svg=$("#mapSvg");
+  inner.querySelectorAll(".map-node,.node-tag,.map-legend").forEach(e=>e.remove());
+  const W=inner.clientWidth||900,H=1050;
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const rows=5,cols=6,padX=W*0.11,padY=110;
+  const usableW=W-padX*2,usableH=H-padY*1.5;
+  const pts=[];
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const cc=(r%2===0)?c:(cols-1-c);
+      pts.push({x:padX+cc*usableW/(cols-1),y:padY+r*usableH/(rows-1)});
+    }
+  }
+  let pathD="M"+pts.map(p=>`${p.x},${p.y}`).join(" L");
+  svg.innerHTML=`<path d="${pathD}" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 26"/>`;
+  for(let lv=1;lv<=30;lv++){
+    const p=pts[lv-1];
+    const node=document.createElement("button");
+    node.className="map-node";
+    node.style.left=p.x+"px";node.style.top=p.y+"px";
+    const stars=save.stars[lv]||0;
+    if(lv<save.unlocked||(save.stars[lv]&&lv<=save.unlocked)){
+      node.classList.add("node-done");
+      node.innerHTML=`<span class="lv-num">${lv}</span><span class="lv-stars">${"★".repeat(stars)}${"☆".repeat(3-stars)}</span>`;
+      node.addEventListener("click",()=>{Sound.click();startLevel(lv);});
+    }else if(lv===save.unlocked){
+      node.classList.add("node-cur");
+      node.innerHTML=`<span class="lv-num">${lv}</span><span class="lv-stars">▶</span>`;
+      node.addEventListener("click",()=>{Sound.click();startLevel(lv);});
+    }else{
+      node.classList.add("node-lock");
+      node.innerHTML=`<span style="font-size:22px">🔒</span>`;
+    }
+    inner.appendChild(node);
+    const tag=document.createElement("div");
+    tag.className="node-tag";tag.textContent=LEVEL_TAGS[lv-1];
+    tag.style.left=p.x+"px";tag.style.top=(p.y+36)+"px";
+    inner.appendChild(tag);
+  }
+  const legend=document.createElement("div");
+  legend.className="map-legend";
+  legend.innerHTML="🟢 已通关 &nbsp; 🟠 当前关 &nbsp; 🔒 未解锁<br>答对题目赚金币，去商城换装扮！";
+  inner.appendChild(legend);
+  updateHUD();
+}
+
+/* ==================== 通用弹窗 ==================== */
+function showModal(html){$("#modalCard").innerHTML=html;$("#modal").classList.remove("hidden");}
+function closeModal(){$("#modal").classList.add("hidden");}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
+
+/* ==================== 关卡配置 ==================== */
+const SPEED_OPTS={slow:{mult:1.4,label:"🐢 慢速"},normal:{mult:1,label:"🐇 中速"},fast:{mult:0.72,label:"🚀 快速"}};
+function levelConfig(lv){
+  const cfg={lv,hearts:3};
+  cfg.book=lv<=10?"上册":lv<=20?"下册":"综合";
+  cfg.subject="mix";/* 语文数学全部混合随机 */
+  cfg.target=Math.min(10,5+Math.floor(lv/5));
+  const sp=SPEED_OPTS[save.speed]||SPEED_OPTS.normal;
+  cfg.speedLabel=sp.label;
+  cfg.speed=Math.max(70,Math.round((230-lv*4)*sp.mult));
+  cfg.bonus=20+lv*5;
+  return cfg;
+}
+
+/* ==================== 题目生成 ==================== */
+/* 语文：拼音选择题 + 看拼音写汉字（键盘输入） */
+function genChineseQ(book){
+  let pool=HANZI_ALL;
+  if(book==="上册")pool=HANZI_SHANG;else if(book==="下册")pool=HANZI_XIA;
+  const item=pick(pool);
+  if(Math.random()<0.5){
+    const opts=[item.py];
+    let guard=0;
+    while(opts.length<4&&guard++<50){const o=pick(pool).py;if(!opts.includes(o))opts.push(o);}
+    shuffle(opts);
+    return {kind:"choice",tag:"语文 · 拼音选择",q:`“ ${item.zi} ”的正确拼音是？`,hint:"",
+      options:opts,answer:item.py,say:`汉字，${item.zi}，的正确拼音是哪一个？`};
+  }
+  return {kind:"input",tag:"语文 · 看拼音写汉字",q:`根据拼音写出汉字`,hint:`${item.py}`,
+    answer:item.zi,inputMode:"text",ph:"输入一个汉字",
+    say:`请根据拼音写汉字。`};
+}
+/* 数学：两位数加减法（键盘输入数字） */
+function genMathQ(){
+  const t=rnd(0,3);
+  if(t===0){
+    const a=rnd(10,89),b=rnd(10,100-a);
+    return {kind:"input",tag:"数学 · 两位数加法",q:`${a} + ${b} = ?`,hint:"仔细看十位和个位哦",
+      answer:String(a+b),inputMode:"numeric",ph:"输入数字",say:`${a}，加，${b}，等于几？`};
+  }
+  if(t===1){
+    let a=rnd(11,99),b=rnd(10,a);
+    return {kind:"input",tag:"数学 · 两位数减法",q:`${a} - ${b} = ?`,hint:"不够减要退位哦",
+      answer:String(a-b),inputMode:"numeric",ph:"输入数字",say:`${a}，减，${b}，等于几？`};
+  }
+  if(t===2){
+    const a=rnd(10,60),b=rnd(10,30),c=rnd(10,Math.min(99,a+b));
+    return {kind:"input",tag:"数学 · 加减混合",q:`${a} + ${b} - ${c} = ?`,hint:"从左往右依次计算",
+      answer:String(a+b-c),inputMode:"numeric",ph:"输入数字",say:`${a}，加，${b}，再减，${c}，等于几？`};
+  }
+  const a=rnd(10,80),ans=rnd(10,99-a),c=a+ans;
+  const hideLeft=Math.random()<0.5;
+  if(hideLeft)return {kind:"input",tag:"数学 · 填空小达人",q:`(　) + ${ans} = ${c}`,hint:"想想几加 "+ans+" 等于 "+c,
+    answer:String(a),inputMode:"numeric",ph:"输入数字",say:`几加 ${ans} 等于 ${c}？`};
+  return {kind:"input",tag:"数学 · 填空小达人",q:`${a} + (　) = ${c}`,hint:"想想 "+a+" 加几等于 "+c,
+    answer:String(ans),inputMode:"numeric",ph:"输入数字",say:`${a} 加几等于 ${c}？`};
+}
+/* 全题型加权随机分发：语文字词句拼音古诗 + 数学全领域 */
+function genQuestion(cfg){
+  const gens=[
+    [()=>genChineseQ("综合"),2.6], // 拼音选择 / 看拼音写汉字
+    [genQ_writeWord,2],            // 看拼音写词语（打字）
+    [genQ_pyWord,1.2],             // 词语拼音选择
+    [genQ_liangci,0.9],            // 量词
+    [genQ_fanyici,0.9],            // 反义词
+    [genQ_juzi,0.9],               // 句子填空
+    [genQ_biaodian,0.6],           // 标点
+    [genQ_pyKnow,0.8],             // 拼音知识
+    [genQ_poem,1.6],               // 古诗接龙/作者/填字
+    [genQ_duoyin,0.8],             // 多音字
+    [genQ_xingjin,0.8],            // 形近字
+    [genQ_pianpang,0.7],           // 偏旁部首
+    [genQ_zibian,0.7],             // 汉字变身
+    [genQ_dapei,0.9],              // 词语搭配
+    [genQ_chengyu,0.6],            // 成语积累
+    [genQ_kewen,1],                // 课文填空
+    [genQ_xiehouyu,0.5],           // 歇后语
+    [genQ_yanyu,0.7],              // 日积月累
+    [genQ_duilian,0.6],            // 对子歌
+    [genMathQ,2.4],                // 两位数加减（打字）
+    [genQ_wordProb,1.8],           // 应用题（列算式）
+    [genQ_tens,1],                 // 整十数口算
+    [genQ_compare,0.9],            // 比大小
+    [genQ_shape,0.9],              // 图形与分类
+    [genQ_numknow,1],              // 数的认识
+    [genQ_rule,0.8],               // 找规律
+    [genQ_clock,0.7],              // 认识钟表
+    [genQ_pos,0.7],                // 位置与顺序
+    [genQ_rmb,0.7],                // 认识人民币
+    [genQ_qkb,0.5],                // 图形拼组/七巧板
+    [genQ_baishu,0.6],             // 百数表
+    [genQ_shufa,0.5],              // 计算方法
+    [genQ_dayixie,0.5]             // 大一些/小得多
+  ];
+  let total=0;for(const g of gens)total+=g[1];
+  let r=Math.random()*total;
+  for(const g of gens){if(r<g[1])return g[0]();r-=g[1];}
+  return genMathQ();
+}
+/* ==================== 贪吃蛇游戏引擎 ==================== */
+const COLS=20,ROWS=14,CELL=40;
+const cv=$("#gameCanvas"),ctx=cv.getContext("2d");
+let G=null;
+
+function startLevel(lv){
+  const cfg=levelConfig(lv);
+  G={cfg,snake:[{x:9,y:7},{x:8,y:7},{x:7,y:7}],dir:{x:1,y:0},dirQueue:[],
+    fruits:[],parts:[],hearts:cfg.hearts,progress:0,grow:0,paused:true,
+    invUntil:0,tick:0,over:false,loopId:null,curQ:null};
+  show("#scr-game");
+  const subj="语文+数学 随机混合";
+  $("#gameLevelName").textContent=`第 ${lv} 关 · 知识大混合`;
+  updateGameHUD();
+  $("#gamePause").textContent="⏸️";
+  for(let i=0;i<3;i++)spawnFruit("q");
+  spawnFruit("coin");
+  showModal(`
+    <div class="big-emoji">🐍</div>
+    <h2>第 ${lv} 关</h2>
+    <p>题目：<b>${subj}</b>　蛇速：<b>${cfg.speedLabel}</b></p>
+    <p>吃掉 ❓ 果子并答对 <b>${cfg.target}</b> 道题即可过关！<br>🪙 金币果可以加金币，但只有 ❓ 果子才算答题进度哦<br>答错或撞墙会扣 ❤️，❤️ 用完要重新挑战哦～</p>
+    <p>🪙 答对 +5 金币，吃金币果 +10 金币，过关再送 <b>${cfg.bonus}</b> 金币！</p>
+    <button class="btn btn-big btn-primary" onclick="beginPlay()">▶ 开始挑战</button>
+  `);
+}
+window.beginPlay=function(){
+  closeModal();G.paused=false;
+  if(G.loopId)clearInterval(G.loopId);
+  G.loopId=setInterval(gameStep,G.cfg.speed);
+};
+
+function updateGameHUD(){
+  $("#gameHearts").textContent="❤️".repeat(G.hearts)+"🖤".repeat(Math.max(0,3-G.hearts));
+  $("#gameProgress").textContent=`⭐ ${G.progress}/${G.cfg.target}`;
+  $("#gameCoins").textContent=save.coins;
+}
+function randFreeCell(){
+  for(let i=0;i<200;i++){
+    const c={x:rnd(0,COLS-1),y:rnd(0,ROWS-1)};
+    if(G.snake.some(s=>s.x===c.x&&s.y===c.y))continue;
+    if(G.fruits.some(f=>f.x===c.x&&f.y===c.y))continue;
+    return c;
+  }
+  return {x:0,y:0};
+}
+function spawnFruit(kind){
+  const c=randFreeCell();
+  G.fruits.push({x:c.x,y:c.y,kind,bob:Math.random()*Math.PI*2});
+}
+function burst(x,y,color,n=14){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,sp=1+Math.random()*3;
+    G.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,c:color,r:2+Math.random()*3});
+  }
+}
+
+function gameStep(){
+  if(G.paused||G.over)return;
+  G.tick++;
+  if(G.dirQueue.length)G.dir=G.dirQueue.shift();
+  const head={x:G.snake[0].x+G.dir.x,y:G.snake[0].y+G.dir.y};
+  const now=Date.now();
+  /* 撞墙（始终判定）或撞自己（无敌时间内豁免） */
+  const hitWall=head.x<0||head.y<0||head.x>=COLS||head.y>=ROWS;
+  const hitSelf=now>G.invUntil&&G.snake.some(s=>s.x===head.x&&s.y===head.y);
+  if(hitWall||hitSelf){loseHeart();return;}
+  G.snake.unshift(head);
+  const fi=G.fruits.findIndex(f=>f.x===head.x&&f.y===head.y);
+  if(fi>=0){
+    const f=G.fruits.splice(fi,1)[0];
+    if(f.kind==="q"){
+      Sound.eat();burst(head.x*CELL+20,head.y*CELL+20,"#ff5e62");
+      G.grow+=1;
+      askQuestion();
+    }else{
+      Sound.coin();Sound.praiseCoin();save.coins+=10;persist();
+      burst(head.x*CELL+20,head.y*CELL+20,"#ffd200",20);
+      updateGameHUD();
+      /* 吃完金币后，保证场上始终有 ❓ 果子等你去答题 */
+      if(G.fruits.filter(f=>f.kind==="q").length<3)spawnFruit("q");
+      setTimeout(()=>{if(G&&!G.over)spawnFruit("coin");},4000);
+    }
+  }
+  if(G.grow>0)G.grow--;else G.snake.pop();
+  draw();
+}
+
+function loseHeart(){
+  G.hearts--;Sound.hurt();updateGameHUD();
+  burst(G.snake[0].x*CELL+20,G.snake[0].y*CELL+20,"#888",20);
+  if(G.hearts<=0){levelFail();return;}
+  G.snake=[{x:9,y:7},{x:8,y:7},{x:7,y:7}];
+  G.dir={x:1,y:0};G.dirQueue=[];
+  G.invUntil=Date.now()+1500;
+  draw();
+}
+
+/* ---------- 答题 ---------- */
+function askQuestion(){
+  G.paused=true;
+  const q=genQuestion(G.cfg);G.curQ=q;
+  $("#qTag").textContent=q.tag;
+  $("#qText").textContent=q.q;
+  $("#qText").style.fontSize=q.q.length>26?"21px":"";
+  $("#qHint").textContent=q.hint||"";
+  $("#qFeedback").textContent="";$("#qFeedback").className="";
+  const ch=$("#qChoices"),row=$("#qInputRow");
+  ch.innerHTML="";
+  if(q.kind==="choice"){
+    ch.classList.remove("hidden");row.classList.add("hidden");
+    q.options.forEach(opt=>{
+      const b=document.createElement("button");
+      b.className="choice-btn";b.textContent=opt;
+      b.addEventListener("click",()=>answerChoice(b,opt));
+      ch.appendChild(b);
+    });
+  }else{
+    ch.classList.add("hidden");row.classList.remove("hidden");
+    const inp=$("#qInput");
+    const isEq=q.kind==="equation";
+    $("#qEq").classList.toggle("hidden",!isEq);
+    $("#qEqSign").classList.toggle("hidden",!isEq);
+    inp.value="";inp.placeholder=isEq?"得数":(q.ph||"输入答案");
+    inp.setAttribute("inputmode",isEq?"numeric":(q.inputMode||"text"));
+    inp.setAttribute("lang","zh-CN");
+    if(isEq){$("#qEq").value="";setTimeout(()=>$("#qEq").focus(),100);}
+    else setTimeout(()=>inp.focus(),100);
+  }
+  $("#qOverlay").classList.remove("hidden");
+  /* 语音读题（默认关闭，可在首页开启自动读题，或点喇叭手动读） */
+  if(q.say&&save.autoread)setTimeout(()=>Sound.readQ(q.say),300);
+}
+$("#qSpeak").addEventListener("click",()=>{
+  Sound.click();
+  if(G&&G.curQ&&G.curQ.say)Sound.readQ(G.curQ.say);
+});
+function answerChoice(btn,opt){
+  if(!G.curQ)return;
+  const q=G.curQ;G.curQ=null;
+  const right=opt===q.answer;
+  $$("#qChoices .choice-btn").forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===q.answer)b.classList.add("right");
+  });
+  if(!right)btn.classList.add("wrong");
+  settleAnswer(right,q.answer);
+}
+/* 安全解析加减算式（支持全角符号、连等） */
+function evalExpr(s){
+  if(!s)return null;
+  s=String(s).replace(/＋/g,"+").replace(/[－—–]/g,"-").replace(/\s/g,"").split("=")[0];
+  const m=s.match(/^(\d+)([+-])(\d+)(?:([+-])(\d+))?$/);
+  if(!m)return null;
+  let v=(+m[1])+(m[2]==="+"?+m[3]:-m[3]);
+  if(m[4])v+=(m[4]==="+"?+m[5]:-m[5]);
+  return v;
+}
+function submitInput(){
+  if(!G.curQ)return;
+  const q=G.curQ;G.curQ=null;
+  if(q.kind==="equation"){
+    /* 应用题：学生自己列算式 + 写得数，两者都要对 */
+    const eqVal=evalExpr($("#qEq").value);
+    const resVal=$("#qInput").value.trim();
+    const right=(eqVal===Number(q.answer))&&(resVal===q.answer);
+    settleAnswer(right,`${q.expr} = ${q.answer}`);
+    return;
+  }
+  const val=$("#qInput").value.trim();
+  settleAnswer(val===q.answer,q.answer);
+}
+function settleAnswer(right,answer){
+  const fb=$("#qFeedback");
+  if(right){
+    fb.textContent=pick(["🎉 太棒了！+5 金币","🌟 回答正确！+5 金币","👏 你真聪明！+5 金币","💯 完全正确！+5 金币"]);
+    fb.className="fb-right";
+    Sound.correct();Sound.praise();save.coins+=5;G.progress++;
+    burst(G.snake[0].x*CELL+20,G.snake[0].y*CELL+20,"#56ab2f",24);
+  }else{
+    fb.textContent=`😅 答错啦，正确答案是：${answer}`;
+    fb.className="fb-wrong";
+    Sound.wrong();Sound.encourage();G.hearts--;
+  }
+  persist();updateGameHUD();
+  setTimeout(()=>{
+    $("#qOverlay").classList.add("hidden");
+    if(G.over)return;
+    if(G.progress>=G.cfg.target){levelComplete();return;}
+    if(G.hearts<=0){levelFail();return;}
+    spawnFruit("q");
+    G.paused=false;
+  },right?1100:1800);
+}
+
+/* ---------- 过关 / 失败 ---------- */
+function levelComplete(){
+  G.over=true;clearInterval(G.loopId);
+  const lv=G.cfg.lv;
+  const stars=G.hearts>=3?3:G.hearts===2?2:1;
+  if(!save.stars[lv]||save.stars[lv]<stars)save.stars[lv]=stars;
+  save.coins+=G.cfg.bonus;
+  if(lv===save.unlocked&&lv<30)save.unlocked=lv+1;
+  persist();Sound.levelup();confetti(160);
+  const isLast=lv===30;
+  showModal(`
+    <div class="big-emoji">🏆</div>
+    <h2>${isLast?"恭喜通关全部关卡！":"第 "+lv+" 关 · 过关啦！"}</h2>
+    <div class="stars-big">${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</div>
+    <p class="reward-line">🪙 过关奖励 +${G.cfg.bonus} 金币</p>
+    <p>${isLast?"你已经是真正的小学霸啦，快去商城领取你的荣耀吧！":"继续保持，下一关更精彩！"}</p>
+    ${isLast?"":`<button class="btn btn-big btn-primary" onclick="nextLevel(${lv+1})">▶ 下一关</button>`}
+    <button class="btn btn-big btn-info" onclick="backToMap()">🗺️ 返回地图</button>
+    <button class="btn btn-big btn-shop" onclick="goShop()">🛒 去商城花金币</button>
+  `);
+}
+function levelFail(){
+  G.over=true;clearInterval(G.loopId);
+  Sound.wrong();
+  showModal(`
+    <div class="big-emoji">💪</div>
+    <h2>别灰心，再来一次！</h2>
+    <p>答错了几道题，❤️ 用完啦。<br>复习一下再挑战，你一定可以的！</p>
+    <button class="btn btn-big btn-primary" onclick="retryLevel()">🔄 重新挑战</button>
+    <button class="btn btn-big btn-info" onclick="backToMap()">🗺️ 返回地图</button>
+  `);
+}
+window.nextLevel=lv=>{closeModal();startLevel(lv);};
+window.retryLevel=()=>{closeModal();startLevel(G.cfg.lv);};
+window.backToMap=()=>{closeModal();if(G&&G.loopId)clearInterval(G.loopId);G=null;renderMap();show("#scr-map");};
+window.goShop=()=>{closeModal();if(G&&G.loopId)clearInterval(G.loopId);G=null;renderShop();show("#scr-shop");};
+
+/* ---------- 画面绘制 ---------- */
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  /* 阳光天空 */
+  const sky=ctx.createLinearGradient(0,0,0,cv.height);
+  sky.addColorStop(0,"#fffde7");sky.addColorStop(0.5,"#e8f5e9");sky.addColorStop(1,"#dcedc8");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,cv.width,cv.height);
+  const t=Date.now()/300;
+  /* 小太阳 */
+  ctx.save();
+  ctx.translate(cv.width-58,52);
+  ctx.rotate(Date.now()/4000);
+  ctx.strokeStyle="rgba(255,193,7,.85)";ctx.lineWidth=4;ctx.lineCap="round";
+  for(let i=0;i<10;i++){const a=i*Math.PI/5;ctx.beginPath();ctx.moveTo(Math.cos(a)*32,Math.sin(a)*32);ctx.lineTo(Math.cos(a)*42,Math.sin(a)*42);ctx.stroke();}
+  ctx.rotate(-Date.now()/4000);
+  const sg=ctx.createRadialGradient(0,0,4,0,0,26);
+  sg.addColorStop(0,"#fff9c4");sg.addColorStop(1,"#ffc107");
+  ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  /* 飘动的云朵 */
+  ctx.fillStyle="rgba(255,255,255,.9)";
+  for(let i=0;i<3;i++){
+    const cx=((Date.now()/90+i*300)%(cv.width+180))-90,cy=36+i*54;
+    ctx.beginPath();
+    ctx.arc(cx,cy,16,0,Math.PI*2);ctx.arc(cx+18,cy-8,13,0,Math.PI*2);ctx.arc(cx+36,cy,15,0,Math.PI*2);
+    ctx.fill();
+  }
+  /* 棋盘格 */
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    if((x+y)%2===0){ctx.fillStyle="rgba(255,255,255,.35)";ctx.fillRect(x*CELL,y*CELL,CELL,CELL);}
+  }
+  /* 底部草地花边 */
+  ctx.fillStyle="rgba(139,195,74,.5)";
+  ctx.fillRect(0,cv.height-10,cv.width,10);
+  ctx.font="14px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  const flowers=["🌼","🌷","🌸","🍀","🌻"];
+  for(let i=0;i<10;i++){ctx.fillText(flowers[i%flowers.length],30+i*82,cv.height-16);}
+  /* 果子 */
+  for(const f of G.fruits){
+    const cx=f.x*CELL+CELL/2,cy=f.y*CELL+CELL/2+Math.sin(t+f.bob)*3;
+    ctx.save();
+    ctx.shadowBlur=14;
+    if(f.kind==="q"){
+      ctx.shadowColor="#ff8a65";
+      ctx.fillStyle="#ff7043";
+      ctx.beginPath();ctx.arc(cx,cy,15,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.fillStyle="#fff";ctx.font="bold 20px sans-serif";
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText("?",cx,cy+1);
+    }else{
+      ctx.shadowColor="#ffd200";ctx.shadowBlur=18;
+      ctx.font="26px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText("🪙",cx,cy);
+    }
+    ctx.restore();
+  }
+  /* 蛇 */
+  const skin=getSkin(),hat=getHat();
+  const n=G.snake.length;
+  const flash=Date.now()<G.invUntil&&Math.floor(Date.now()/120)%2===0;
+  for(let i=n-1;i>=0;i--){
+    const s=G.snake[i];
+    let color;
+    if(skin.c1==="rainbow")color=`hsl(${(i*22+Date.now()/12)%360},75%,55%)`;
+    else if(skin.alt&&i>0)color=(i%2===0)?skin.c1:(skin.c3||skin.c2);
+    else color=i===0?skin.c2:skin.c1;
+    if(flash)color="#ffffff";
+    const px=s.x*CELL,py=s.y*CELL;
+    const inset=i===0?2:4;
+    ctx.fillStyle=color;
+    roundRect(px+inset,py+inset,CELL-inset*2,CELL-inset*2,i===0?12:9);
+    ctx.fill();
+    if(i===0){
+      /* 眼睛 */
+      ctx.fillStyle="#fff";
+      const ex=G.dir.x,ey=G.dir.y;
+      const cx=px+CELL/2,cy=py+CELL/2;
+      const ox=ey*7,oy=ex*7;
+      ctx.beginPath();ctx.arc(cx+ex*6+ox,cy+ey*6+oy,5.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx+ex*6-ox,cy+ey*6-oy,5.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#222";
+      ctx.beginPath();ctx.arc(cx+ex*8+ox,cy+ey*8+oy,2.8,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx+ex*8-ox,cy+ey*8-oy,2.8,0,Math.PI*2);ctx.fill();
+      /* 舌头 */
+      if(Math.floor(Date.now()/500)%2===0){
+        ctx.strokeStyle="#e53935";ctx.lineWidth=2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx+ex*16,cy+ey*16);
+        ctx.lineTo(cx+ex*22,cy+ey*22);
+        ctx.stroke();
+      }
+      /* 帽子 */
+      if(hat.icon!=="🚫"){
+        ctx.font="22px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+        ctx.fillText(hat.icon,cx,py-6);
+      }
+    }
+  }
+  /* 粒子 */
+  G.parts=G.parts.filter(p=>p.life>0);
+  for(const p of G.parts){
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.life-=0.03;
+    ctx.globalAlpha=Math.max(0,p.life);
+    ctx.fillStyle=p.c;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+/* 待机动画 */
+setInterval(()=>{if(G&&!G.over&&!$("#scr-game").classList.contains("hidden"))draw();},90);
+
+/* ---------- 操作输入 ---------- */
+const DIRS={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+function queueDir(name){
+  if(!G||G.paused||G.over)return;
+  const d=DIRS[name];if(!d)return;
+  const last=G.dirQueue.length?G.dirQueue[G.dirQueue.length-1]:G.dir;
+  if(d.x===-last.x&&d.y===-last.y)return;
+  if(d.x===last.x&&d.y===last.y)return;
+  if(G.dirQueue.length<3)G.dirQueue.push(d);
+}
+document.addEventListener("keydown",e=>{
+  if(!$("#scr-game").classList.contains("hidden")){
+    if(!$("#qOverlay").classList.contains("hidden")){
+      if(e.key==="Enter"&&!e.isComposing&&!$("#qInputRow").classList.contains("hidden"))submitInput();
+      return;
+    }
+    const map={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",w:"up",s:"down",a:"left",d:"right",W:"up",S:"down",A:"left",D:"right"};
+    if(map[e.key]){e.preventDefault();queueDir(map[e.key]);}
+  }
+});
+$$("#dpad button").forEach(b=>b.addEventListener("click",()=>queueDir(b.dataset.d)));
+/* 触屏滑动 */
+let touchStart=null;
+cv.addEventListener("touchstart",e=>{touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+cv.addEventListener("touchend",e=>{
+  if(!touchStart)return;
+  const dx=e.changedTouches[0].clientX-touchStart.x,dy=e.changedTouches[0].clientY-touchStart.y;
+  if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+  queueDir(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"));
+  touchStart=null;
+},{passive:true});
+
+/* ---------- 游戏顶栏按钮 ---------- */
+$("#gamePause").addEventListener("click",()=>{
+  if(!G||G.over)return;
+  G.paused=!G.paused;
+  $("#gamePause").textContent=G.paused?"▶️":"⏸️";
+  Sound.click();
+  if(G.paused)showModal(`<div class="big-emoji">⏸️</div><h2>游戏暂停</h2><p>休息一下眼睛吧～</p><button class="btn btn-big btn-primary" onclick="resumeGame()">▶ 继续游戏</button>`);
+  else closeModal();
+});
+window.resumeGame=()=>{closeModal();G.paused=false;$("#gamePause").textContent="⏸️";};
+$("#gameExit").addEventListener("click",()=>{
+  if(!G)return backToMap();
+  G.paused=true;
+  showModal(`<div class="big-emoji">🤔</div><h2>确定退出本关吗？</h2><p>本关进度将不会保存哦</p>
+    <button class="btn btn-big btn-primary" onclick="backToMap()">确定退出</button>
+    <button class="btn btn-big btn-info" onclick="resumeGame()">继续游戏</button>`);
+});
+$("#qSubmit").addEventListener("click",submitInput);
+
+/* ==================== 主界面按钮 ==================== */
+$("#btnStart").addEventListener("click",()=>{Sound.click();Sound.ensure();Sound.startBgm();renderMap();show("#scr-map");});
+$("#btnShop").addEventListener("click",()=>{Sound.click();Sound.ensure();Sound.startBgm();renderShop();show("#scr-shop");});
+$("#btnHow").addEventListener("click",()=>{
+  Sound.click();
+  showModal(`
+    <div class="big-emoji">📖</div>
+    <h2>玩法说明</h2>
+    <div class="howto">
+      🐍 用 <b>方向键 / WASD / 滑动屏幕</b> 控制小蛇移动<br>
+      🎲 语文数学全领域 <b>36 种题型</b>混合随机出题<br>
+      📚 语文：拼音、写汉字/词语、<b>古诗接龙</b>、多音字、形近字、偏旁、量词、反义词、句子、课文填空、歇后语、日积月累<br>
+      🧮 数学：两位数加减、<b>应用题（自己列算式+得数）</b>、整十口算、图形、七巧板、百数表、比大小、钟表、规律、数位、人民币、位置<br>
+      🔊 点题目右上角<b>喇叭</b>可以读题（首页也可开自动读题）<br>
+      ❓ 只有问号果子才算答题进度<br>
+      🪙 金币果 +10 金币，吃完记得去找 ❓ 答题<br>
+      🎙️ 答对语音夸赞，答错温柔鼓励<br>
+      🐢🚀 首页可自由调节小蛇速度<br>
+      💾 首页可导出/导入存档备份，换设备也不怕<br>
+      ❤️ 答错或撞墙扣一颗心，三颗用完要重挑战<br>
+      🏆 一共 30 关，从新手试炼到期末大魔王！
+    </div>
+    <button class="btn btn-big btn-primary" onclick="closeModal()">知道啦！</button>
+  `);
+});
+window.closeModal=closeModal;
+$("#mapBack").addEventListener("click",()=>{Sound.click();updateHUD();show("#scr-home");});
+$("#shopBack").addEventListener("click",()=>{Sound.click();renderMap();show("#scr-map");});
+
+/* ==================== 初始化 ==================== */
+$("#soundBtn").textContent=save.sound?"🔊":"🔇";
+updateHUD();
+</script>
 </body>
 </html>

@@ -289,9 +289,11 @@ body{
     <button class="btn btn-big btn-info" id="btnHow">📖 玩法说明</button>
     <div class="speed-row">
       <span class="speed-label">🐍 蛇速：</span>
+      <button class="speed-btn" data-sp="ultraslow">🐌 慢2倍</button>
       <button class="speed-btn" data-sp="slow">🐢 慢速</button>
       <button class="speed-btn" data-sp="normal">🐇 中速</button>
       <button class="speed-btn" data-sp="fast">🚀 快速</button>
+      <button class="speed-btn" data-sp="ultrafast">⚡ 快2倍</button>
     </div>
     <div class="mini-row">
       <button class="btn-mini" id="btnBackup">💾 导出备份</button>
@@ -1380,7 +1382,7 @@ function closeModal(){$("#modal").classList.add("hidden");}
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
 
 /* ==================== 关卡配置 ==================== */
-const SPEED_OPTS={slow:{mult:1.4,label:"🐢 慢速"},normal:{mult:1,label:"🐇 中速"},fast:{mult:0.72,label:"🚀 快速"}};
+const SPEED_OPTS={ultraslow:{mult:2,label:"🐌 慢2倍"},slow:{mult:1.4,label:"🐢 慢速"},normal:{mult:1,label:"🐇 中速"},fast:{mult:0.72,label:"🚀 快速"},ultrafast:{mult:0.5,label:"⚡ 快2倍"}};
 function levelConfig(lv){
   const cfg={lv,hearts:3};
   cfg.book=lv<=10?"上册":lv<=20?"下册":"综合";
@@ -1849,8 +1851,15 @@ const DIRS={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
 function queueDir(name){
   if(!G||G.paused||G.over)return;
   const d=DIRS[name];if(!d)return;
-  const last=G.dirQueue.length?G.dirQueue[G.dirQueue.length-1]:G.dir;
-  if(d.x===-last.x&&d.y===-last.y)return;
+  const cur=G.dir;
+  /* 原地调头：输入方向与当前朝向完全相反时，立即翻转蛇身并反向，且不判死 */
+  if(d.x===-cur.x&&d.y===-cur.y){
+    G.snake.reverse();   // 蛇身翻转，原蛇尾变为新蛇头
+    G.dir={x:d.x,y:d.y}; // 方向立即反向（如向上直行时按下→直接向下走）
+    G.dirQueue=[];       // 清空排队方向，避免与调头冲突
+    return;
+  }
+  const last=G.dirQueue.length?G.dirQueue[G.dirQueue.length-1]:cur;
   if(d.x===last.x&&d.y===last.y)return;
   if(G.dirQueue.length<3)G.dirQueue.push(d);
 }

@@ -148,7 +148,7 @@ body{
 .shop-name{font-weight:bold;color:#445;font-size:15px;margin-bottom:8px;}
 .shop-item .btn{padding:7px 16px;font-size:14px;}
 /* ---------- 游戏界面 ---------- */
-#scr-game{justify-content:flex-start;gap:8px;padding:10px;}
+#scr-game{justify-content:flex-start;gap:0;padding:0;}
 #scr-game .bar{max-width:none;}
 #scr-game #gameCanvas{border:none;border-radius:0;box-shadow:none;}
 .game-bar{font-size:15px;}
@@ -1392,6 +1392,9 @@ function levelConfig(lv){
   cfg.speedLabel=sp.label;
   cfg.speed=Math.max(70,Math.round((230-lv*4)*sp.mult));
   cfg.bonus=20+lv*5;
+  const ti=(lv-1)%THEMES.length;
+  cfg.theme=THEMES[ti];
+  cfg.themeName=THEMES[ti].name;
   return cfg;
 }
 
@@ -1481,8 +1484,24 @@ function genQuestion(cfg){
   return genMathQ();
 }
 /* ==================== 贪吃蛇游戏引擎 ==================== */
-const COLS=20,ROWS=14,CELL=40;
-const VW=COLS*CELL,VH=ROWS*CELL;  /* 游戏逻辑画布尺寸 800x560，全屏时按比例缩放 */
+/* ---------- 关卡主题背景（每个关卡一套风格，越往后越炫） ---------- */
+const THEMES=[
+  {name:"🌞 晴空草原",sky:["#fffde7","#e8f5e9","#dcedc8"],orb:"sun",orbColor:"#ffc107",orbGlow:"#fff9c4",
+   cloud:"rgba(255,255,255,.9)",checker:"rgba(255,255,255,.35)",grass:"rgba(139,195,74,.5)",deco:"cloud",frame:"#ffffff",sparkle:false},
+  {name:"🌌 梦幻星空",sky:["#0d1b4c","#1a237e","#311b92"],orb:"moon",orbColor:"#fff59d",orbGlow:"#e8eaf6",
+   cloud:null,checker:"rgba(255,255,255,.10)",grass:"rgba(94,53,177,.55)",deco:"star",frame:"#b39ddb",sparkle:true},
+  {name:"🐠 海底世界",sky:["#e0f7fa","#b2ebf2","#80deea"],orb:"sun",orbColor:"#fff59d",orbGlow:"#e0f7fa",
+   cloud:null,checker:"rgba(255,255,255,.22)",grass:"rgba(0,150,136,.45)",deco:"bubble",frame:"#4dd0e1",sparkle:true},
+  {name:"🍬 糖果乐园",sky:["#ffe0f0","#f8bbd0","#e1bee7"],orb:"sun",orbColor:"#ff80ab",orbGlow:"#ffe0f0",
+   cloud:"rgba(255,255,255,.85)",checker:"rgba(255,255,255,.30)",grass:"rgba(240,98,146,.45)",deco:"candy",frame:"#f48fb1",sparkle:true},
+  {name:"🌿 魔法森林",sky:["#e8f5e9","#c8e6c9","#a5d6a7"],orb:"sun",orbColor:"#fff176",orbGlow:"#e8f5e9",
+   cloud:"rgba(255,255,255,.85)",checker:"rgba(255,255,255,.28)",grass:"rgba(67,160,71,.55)",deco:"leaf",frame:"#81c784",sparkle:true},
+  {name:"🏜️ 沙漠绿洲",sky:["#fff8e1","#ffe0b2","#ffcc80"],orb:"sun",orbColor:"#ffb300",orbGlow:"#fff8e1",
+   cloud:"rgba(255,255,255,.8)",checker:"rgba(255,255,255,.25)",grass:"rgba(124,179,66,.55)",deco:"cactus",frame:"#ffb74d",sparkle:false}
+];
+const CELL=40;                 /* 每格像素（蛇身粗细），保持不变以保证手感 */
+let COLS=20,ROWS=14;           /* 格子数：按屏幕实时计算，铺满整屏（含左右浏览器边缘） */
+let VW=COLS*CELL,VH=ROWS*CELL;
 const cv=$("#gameCanvas"),ctx=cv.getContext("2d");
 /* 高清全屏：按屏幕物理像素（含 devicePixelRatio）设置画布缓冲区，画面更清晰 */
 function resizeGameCanvas(){
@@ -1492,6 +1511,15 @@ function resizeGameCanvas(){
   const dpr=window.devicePixelRatio||1;
   cv.width=Math.round(w*dpr);
   cv.height=Math.round(h*dpr);
+  /* 关键：按屏幕实际尺寸计算格子数，让贪吃蛇可以走到左右浏览器边缘（全屏） */
+  COLS=Math.max(8,Math.round(w/CELL));
+  ROWS=Math.max(8,Math.round(h/CELL));
+  VW=COLS*CELL; VH=ROWS*CELL;
+  /* 若游戏中缩放窗口，把蛇和果子夹回新边界，避免越界 */
+  if(G&&!G.over){
+    G.snake.forEach(s=>{s.x=Math.max(0,Math.min(COLS-1,s.x));s.y=Math.max(0,Math.min(ROWS-1,s.y));});
+    G.fruits.forEach(f=>{f.x=Math.max(0,Math.min(COLS-1,f.x));f.y=Math.max(0,Math.min(ROWS-1,f.y));});
+  }
   if(G&&!G.over)draw();
 }
 window.addEventListener("resize",resizeGameCanvas);
@@ -1500,13 +1528,15 @@ let G=null;
 
 function startLevel(lv){
   const cfg=levelConfig(lv);
-  G={cfg,snake:[{x:9,y:7},{x:8,y:7},{x:7,y:7}],dir:{x:1,y:0},dirQueue:[],
+  show("#scr-game");
+  resizeGameCanvas();                 /* 先按屏幕算好格子数，蛇才能居中铺满 */
+  const cx=Math.floor(COLS/2),cy=Math.floor(ROWS/2);
+  G={cfg,snake:[{x:cx,y:cy},{x:cx-1,y:cy},{x:cx-2,y:cy}],dir:{x:1,y:0},dirQueue:[],
     fruits:[],parts:[],hearts:cfg.hearts,progress:0,grow:0,paused:true,
     invUntil:0,tick:0,over:false,loopId:null,curQ:null};
-  show("#scr-game");
   requestAnimationFrame(resizeGameCanvas);
   const subj="语文+数学 随机混合";
-  $("#gameLevelName").textContent=`第 ${lv} 关 · 知识大混合`;
+  $("#gameLevelName").textContent=`第 ${lv} 关 · ${cfg.themeName}`;
   updateGameHUD();
   $("#gamePause").textContent="⏸️";
   for(let i=0;i<3;i++)spawnFruit("q");
@@ -1515,6 +1545,7 @@ function startLevel(lv){
     <div class="big-emoji">🐍</div>
     <h2>第 ${lv} 关</h2>
     <p>题目：<b>${subj}</b>　蛇速：<b>${cfg.speedLabel}</b></p>
+    <p>🎨 场景：<b>${cfg.themeName}</b></p>
     <p>吃掉 ❓ 果子并答对 <b>${cfg.target}</b> 道题即可过关！<br>🪙 金币果可以加金币，但只有 ❓ 果子才算答题进度哦<br>答错或撞墙会扣 ❤️，❤️ 用完要重新挑战哦～</p>
     <p>🪙 答对 +5 金币，吃金币果 +10 金币，过关再送 <b>${cfg.bonus}</b> 金币！</p>
     <button class="btn btn-big btn-primary" onclick="beginPlay()">▶ 开始挑战</button>
@@ -1586,7 +1617,8 @@ function loseHeart(){
   G.hearts--;Sound.hurt();updateGameHUD();
   burst(G.snake[0].x*CELL+20,G.snake[0].y*CELL+20,"#888",20);
   if(G.hearts<=0){levelFail();return;}
-  G.snake=[{x:9,y:7},{x:8,y:7},{x:7,y:7}];
+  const cx=Math.floor(COLS/2),cy=Math.floor(ROWS/2);
+  G.snake=[{x:cx,y:cy},{x:cx-1,y:cy},{x:cx-2,y:cy}];
   G.dir={x:1,y:0};G.dirQueue=[];
   G.invUntil=Date.now()+1500;
   draw();
@@ -1730,42 +1762,49 @@ window.goShop=()=>{closeModal();if(G&&G.loopId)clearInterval(G.loopId);G=null;re
 function draw(){
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,cv.width,cv.height);
-  /* 阳光天空 */
+  const TH=G.cfg.theme;
+  /* 主题天空（铺满整个画布） */
   const sky=ctx.createLinearGradient(0,0,0,cv.height);
-  sky.addColorStop(0,"#fffde7");sky.addColorStop(0.5,"#e8f5e9");sky.addColorStop(1,"#dcedc8");
+  sky.addColorStop(0,TH.sky[0]);sky.addColorStop(0.5,TH.sky[1]);sky.addColorStop(1,TH.sky[2]);
   ctx.fillStyle=sky;ctx.fillRect(0,0,cv.width,cv.height);
   const s=Math.min(cv.width/VW, cv.height/VH);
   ctx.setTransform(s,0,0,s,(cv.width-VW*s)/2,(cv.height-VH*s)/2);
   const t=Date.now()/300;
-  /* 小太阳 */
-  ctx.save();
-  ctx.translate(VW-58,52);
-  ctx.rotate(Date.now()/4000);
-  ctx.strokeStyle="rgba(255,193,7,.85)";ctx.lineWidth=4;ctx.lineCap="round";
-  for(let i=0;i<10;i++){const a=i*Math.PI/5;ctx.beginPath();ctx.moveTo(Math.cos(a)*32,Math.sin(a)*32);ctx.lineTo(Math.cos(a)*42,Math.sin(a)*42);ctx.stroke();}
-  ctx.rotate(-Date.now()/4000);
-  const sg=ctx.createRadialGradient(0,0,4,0,0,26);
-  sg.addColorStop(0,"#fff9c4");sg.addColorStop(1,"#ffc107");
-  ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-  /* 飘动的云朵 */
-  ctx.fillStyle="rgba(255,255,255,.9)";
-  for(let i=0;i<3;i++){
-    const cx=((Date.now()/90+i*300)%(VW+180))-90,cy=36+i*54;
-    ctx.beginPath();
-    ctx.arc(cx,cy,16,0,Math.PI*2);ctx.arc(cx+18,cy-8,13,0,Math.PI*2);ctx.arc(cx+36,cy,15,0,Math.PI*2);
-    ctx.fill();
+  /* 天空中的天体（太阳 / 月亮） */
+  if(TH.orb==="moon"){
+    ctx.save();ctx.translate(VW-60,54);
+    ctx.shadowColor=TH.orbGlow;ctx.shadowBlur=30;
+    const mg=ctx.createRadialGradient(-6,-6,4,0,0,28);mg.addColorStop(0,"#fffde7");mg.addColorStop(1,TH.orbColor);
+    ctx.fillStyle=mg;ctx.beginPath();ctx.arc(0,0,26,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle="rgba(120,120,160,.25)";
+    ctx.beginPath();ctx.arc(-8,-6,5,0,Math.PI*2);ctx.arc(6,8,4,0,Math.PI*2);ctx.arc(2,-10,3,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }else{
+    ctx.save();ctx.translate(VW-58,52);ctx.rotate(Date.now()/4000);
+    ctx.strokeStyle=TH.orbColor;ctx.globalAlpha=.85;ctx.lineWidth=4;ctx.lineCap="round";
+    for(let i=0;i<10;i++){const a=i*Math.PI/5;ctx.beginPath();ctx.moveTo(Math.cos(a)*32,Math.sin(a)*32);ctx.lineTo(Math.cos(a)*42,Math.sin(a)*42);ctx.stroke();}
+    ctx.rotate(-Date.now()/4000);ctx.globalAlpha=1;
+    ctx.shadowColor=TH.orbGlow;ctx.shadowBlur=24;
+    const sg=ctx.createRadialGradient(0,0,4,0,0,26);sg.addColorStop(0,TH.orbGlow);sg.addColorStop(1,TH.orbColor);
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,24,0,Math.PI*2);ctx.fill();
+    ctx.restore();
   }
+  /* 主题装饰（云朵 / 星星 / 气泡 / 糖果 / 叶片 / 仙人掌） */
+  drawDeco(TH,t);
   /* 棋盘格 */
   for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    if((x+y)%2===0){ctx.fillStyle="rgba(255,255,255,.35)";ctx.fillRect(x*CELL,y*CELL,CELL,CELL);}
+    if((x+y)%2===0){ctx.fillStyle=TH.checker;ctx.fillRect(x*CELL,y*CELL,CELL,CELL);}
   }
   /* 底部草地花边 */
-  ctx.fillStyle="rgba(139,195,74,.5)";
-  ctx.fillRect(0,VH-10,VW,10);
+  ctx.fillStyle=TH.grass;
+  ctx.fillRect(0,VH-12,VW,12);
   ctx.font="14px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
   const flowers=["🌼","🌷","🌸","🍀","🌻"];
-  for(let i=0;i<10;i++){ctx.fillText(flowers[i%flowers.length],30+i*82,VH-16);}
+  const fcount=Math.max(8,Math.round(VW/90));
+  for(let i=0;i<fcount;i++){const fx=(i+0.5)*VW/fcount;ctx.fillText(flowers[i%flowers.length],fx,VH-18);}
+  /* 发光边框（高端质感） */
+  ctx.save();ctx.strokeStyle=TH.frame;ctx.lineWidth=6;ctx.shadowColor=TH.frame;ctx.shadowBlur=18;
+  ctx.strokeRect(3,3,VW-6,VH-6);ctx.restore();
   /* 果子 */
   for(const f of G.fruits){
     const cx=f.x*CELL+CELL/2,cy=f.y*CELL+CELL/2+Math.sin(t+f.bob)*3;
@@ -1842,6 +1881,82 @@ function roundRect(x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+/* 五芒星路径 */
+function star5(cx,cy,r){
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=-Math.PI/2+i*2*Math.PI/5;
+    ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    const a2=a+Math.PI/5;
+    ctx.lineTo(cx+Math.cos(a2)*r*0.45,cy+Math.sin(a2)*r*0.45);
+  }
+  ctx.closePath();
+}
+/* 根据主题绘制场景中漂浮的装饰元素（坐标均在逻辑画布 VW×VH 内） */
+function drawDeco(TH,t){
+  const now=Date.now();
+  if(TH.deco==="cloud"&&TH.cloud){
+    ctx.fillStyle=TH.cloud;
+    for(let i=0;i<3;i++){
+      const cx=((now/90+i*300)%(VW+180))-90,cy=36+i*54;
+      ctx.beginPath();
+      ctx.arc(cx,cy,16,0,Math.PI*2);ctx.arc(cx+18,cy-8,13,0,Math.PI*2);ctx.arc(cx+36,cy,15,0,Math.PI*2);
+      ctx.fill();
+    }
+  }else if(TH.deco==="star"){
+    for(let i=0;i<46;i++){
+      const sx=(i*137.5)%VW, sy=((i*97.3)%(VH*0.78));
+      ctx.globalAlpha=0.4+0.6*Math.abs(Math.sin(now/600+i));
+      ctx.fillStyle="#fff";star5(sx,sy,5+(i%3));ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }else if(TH.deco==="bubble"){
+    for(let i=0;i<22;i++){
+      const bx=(i*173.3)%VW;
+      const by=VH-((now/40+i*120)%(VH+60));
+      ctx.globalAlpha=0.5;ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(bx,by,6+(i%4),0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=0.8;ctx.fillStyle="rgba(255,255,255,.5)";
+      ctx.beginPath();ctx.arc(bx-2,by-2,2,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }else if(TH.deco==="candy"){
+    for(let i=0;i<14;i++){
+      const cx=(i*211.7)%(VW-40)+20, cy=((i*90.2)+(now/50)%(VH))%VH;
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(now/1500+i);
+      ctx.fillStyle=i%2?"#ff80ab":"#7e57c2";
+      ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.6)";ctx.fillRect(-9,-2,18,4);
+      ctx.restore();
+    }
+  }else if(TH.deco==="leaf"){
+    for(let i=0;i<18;i++){
+      const lx=(i*151.1)%VW, ly=((i*83.7)+(now/60)%(VH))%VH;
+      ctx.save();ctx.translate(lx,ly);ctx.rotate(Math.sin(now/800+i)*0.6);
+      ctx.fillStyle=i%2?"rgba(129,199,132,.85)":"rgba(102,187,106,.85)";
+      ctx.beginPath();ctx.ellipse(0,0,7,3.5,Math.PI/4,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }else if(TH.deco==="cactus"){
+    for(let i=0;i<6;i++){
+      const basex=60+i*(VW-120)/5, basey=VH-12;
+      ctx.fillStyle="rgba(67,160,71,.7)";
+      roundRect(basex-6,basey-34,12,34,5);ctx.fill();
+      roundRect(basex-16,basey-22,8,16,4);ctx.fill();
+      roundRect(basex+8,basey-28,8,18,4);ctx.fill();
+    }
+  }
+  /* 主题闪烁的小亮点（高端氛围） */
+  if(TH.sparkle){
+    for(let i=0;i<20;i++){
+      const px=(i*263.7)%VW, py=((i*149.1)%(VH*0.9));
+      ctx.globalAlpha=0.3+0.7*Math.abs(Math.sin(now/500+i*1.3));
+      ctx.fillStyle="#fff";
+      ctx.beginPath();ctx.arc(px,py,1.5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
 }
 /* 待机动画 */
 setInterval(()=>{if(G&&!G.over&&!$("#scr-game").classList.contains("hidden"))draw();},90);
